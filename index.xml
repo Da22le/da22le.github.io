@@ -4,9 +4,16 @@
         <link>/</link>
         <description>好好学习 天天向上</description>
         <generator>Hugo -- gohugo.io</generator><language>zh-CN</language><managingEditor>da22lecui@gmial.com (Da22le)</managingEditor>
-            <webMaster>da22lecui@gmial.com (Da22le)</webMaster><copyright>This work is licensed under a Creative Commons Attribution-NonCommercial 4.0 International License.</copyright><lastBuildDate>Wed, 06 Apr 2022 11:27:19 &#43;0800</lastBuildDate>
+            <webMaster>da22lecui@gmial.com (Da22le)</webMaster><copyright>This work is licensed under a Creative Commons Attribution-NonCommercial 4.0 International License.</copyright><lastBuildDate>Mon, 18 Apr 2022 14:26:27 &#43;0800</lastBuildDate>
             <atom:link href="/index.xml" rel="self" type="application/rss+xml" />
         <item>
+    <title>CVE-2022-22954 VMware Workspace ONE Access  SSTI RCE 简单分析</title>
+    <link>/cve-2022-22954-vmware-workspace-one-access-ssti-rce/</link>
+    <pubDate>Mon, 18 Apr 2022 14:26:27 &#43;0800</pubDate>
+    <author>作者</author>
+    <guid>/cve-2022-22954-vmware-workspace-one-access-ssti-rce/</guid>
+    <description><![CDATA[简介 Workspace ONE Access 提供统一应用门户,通过门户可安全访问企业的所有应用，可用于单点登录。CVE-2022-22954 中，攻击者可构造恶意请求造成模板注]]></description>
+</item><item>
     <title>云函数搭建代理池</title>
     <link>/%E4%BA%91%E5%87%BD%E6%95%B0%E6%90%AD%E5%BB%BA%E4%BB%A3%E7%90%86%E6%B1%A0/</link>
     <pubDate>Wed, 06 Apr 2022 11:27:19 &#43;0800</pubDate>
@@ -69,12 +76,5 @@
     <author>作者</author>
     <guid>/cve-2021-38294-apache-storm-nimbus-rce/</guid>
     <description><![CDATA[简介 Apache Storm是一个免费开源、分布式、高容错的实时计算系统。Storm令持续不断的流计算变得容易，弥补了Hadoop批处理所不能满足的实时]]></description>
-</item><item>
-    <title>Apache Commons Collections5 反序列化漏洞分析</title>
-    <link>/apache-commons-collections5/</link>
-    <pubDate>Mon, 20 Dec 2021 16:38:25 &#43;0800</pubDate>
-    <author>作者</author>
-    <guid>/apache-commons-collections5/</guid>
-    <description><![CDATA[前言 Apache Commons Collections的漏洞最初在2015年11月6日由FoxGlove Security安全团队的@breenmachine 在一篇长]]></description>
 </item></channel>
 </rss>

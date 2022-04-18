@@ -1,0 +1,75 @@
+# Spring Cloud Function SpEL RCE 简单分析
+
+
+# 前言
+
+刚曝出来的Spel表达式注入漏洞，这里简单分析一下
+
+# 漏洞版本
+
+```
+3.0.0.RELEASE <= Spring Cloud Function <= 3.2.2
+```
+
+# 环境搭建
+
+地址：https://github.com/spring-cloud/spring-cloud-function/tree/v3.2.1/spring-cloud-function-samples/function-sample-pojo
+
+导入idea中，找到`SampleApplication`启动即可
+
+# 漏洞分析
+
+先来看一下[diff](https://github.com/spring-cloud/spring-cloud-function/commit/dc5128b80c6c04232a081458f637c81a64fa9b52)
+
+![1.png](https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/f9b195ea-c16f-ea2d-aeb2-f2a6c5752ee8.png)
+
+明显的SpEL表达式注入点，因为已知怎么利用，直接在代码处打个断点
+
+![2.png](https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/4e888910-57b7-caab-d30f-1caf859b4d99.png)
+
+先来看一下堆栈:
+
+```
+functionFromExpression:196, RoutingFunction (org.springframework.cloud.function.context.config)
+route:126, RoutingFunction (org.springframework.cloud.function.context.config)
+apply:85, RoutingFunction (org.springframework.cloud.function.context.config)
+doApply:698, SimpleFunctionRegistry$FunctionInvocationWrapper (org.springframework.cloud.function.context.catalog)
+apply:550, SimpleFunctionRegistry$FunctionInvocationWrapper (org.springframework.cloud.function.context.catalog)
+processRequest:100, FunctionWebRequestProcessingHelper (org.springframework.cloud.function.web.util)
+```
+
+先进入到`org.springframework.cloud.function.web.util.FunctionWebRequestProcessingHelper#processRequest`中，在这里处理request请求，最后进入到`apply(input)`中
+
+![3.png](https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/2b5a2e95-7a47-e6d4-65ef-013ec2fc10ad.png)
+
+看一下input的值
+
+![4.png](https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/1f62d3f5-d52b-d3a8-1d74-020d96fd79d8.png)
+
+其中确实存有post包的内容，继续跟进往下走
+
+![5.png](https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/e81b5307-5283-7ced-ea36-cbd9ecfc2a5d.png)
+
+会判断targer是否为RoutingFunction，是的话然后进入到`org.springframework.cloud.function.context.config.RoutingFunction#route`中
+
+![6.png](https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/ef7245c1-d4e9-57b0-61d5-3e45ef4c0a9b.png)
+
+会尝试提取`spring.cloud.function.routing-expression`的值，然后进入到`org.springframework.cloud.function.context.config.RoutingFunction#functionFromExpression`中
+
+![7.png](https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/be3277e6-513b-ec52-1d3f-2c57947a30f5.png)
+
+最后到达SpEl表达式，造成注入，全程没有对`spring.cloud.function.routing-expression`的值进行任何的防护措施，在diff中对代码进行了以下的修改
+
+![8.png](https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/82c49d0c-be5e-9159-85c4-b05927c31c1f.png)
+
+![9.png](https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/53cde793-a867-b8dd-cef1-2da2c6427135.png)
+
+当`isViaHeader`为true时，会使用`SimpleEvaluationContext`去处理请求，从而达到防护的目的
+
+复现结果：
+
+![10.png](https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/446dfef6-e074-db96-3e1f-5a308a4f6128.png)
+
+# 参考链接
+
+1. https://github.com/spring-cloud/spring-cloud-function/commit/dc5128b80c6c04232a081458f637c81a64fa9b52
