@@ -3,4 +3,4 @@
 ## 关于自己
 
 
-* :(far fa-user fa-fw): **正在努力学习Java代码审计的弟弟**
+* :(far fa-user fa-fw): **热衷于漏洞分析和代码审计**
