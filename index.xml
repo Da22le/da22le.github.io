@@ -4,16 +4,9 @@
         <link>/</link>
         <description>好好学习 天天向上</description>
         <generator>Hugo -- gohugo.io</generator><language>zh-CN</language><managingEditor>da22lecui@gmial.com (Da22le)</managingEditor>
-            <webMaster>da22lecui@gmial.com (Da22le)</webMaster><copyright>This work is licensed under a Creative Commons Attribution-NonCommercial 4.0 International License.</copyright><lastBuildDate>Thu, 28 Apr 2022 17:27:49 &#43;0800</lastBuildDate>
+            <webMaster>da22lecui@gmial.com (Da22le)</webMaster><copyright>This work is licensed under a Creative Commons Attribution-NonCommercial 4.0 International License.</copyright><lastBuildDate>Mon, 18 Apr 2022 14:26:27 &#43;0800</lastBuildDate>
             <atom:link href="/index.xml" rel="self" type="application/rss+xml" />
         <item>
-    <title>Fastjson 反序列化分析</title>
-    <link>/fastjson-%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E5%88%86%E6%9E%90/</link>
-    <pubDate>Thu, 28 Apr 2022 17:27:49 &#43;0800</pubDate>
-    <author>作者</author>
-    <guid>/fastjson-%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E5%88%86%E6%9E%90/</guid>
-    <description><![CDATA[前言 继续学习Fastjson反序列化 Fastjson的使用 直接上代码 先引入fastjson1.2.24依赖 1 2 3 4 5 &lt;dependency&gt; &lt;groupId&gt;com.alibaba&lt;/groupId&gt; &lt;artifactId&gt;fastjson&lt;/artifactId&gt; &lt;version&gt;1.2.24&lt;/version&gt; &lt;/dependency&gt; 创建一个use]]></description>
-</item><item>
     <title>CVE-2022-22954 VMware Workspace ONE Access  SSTI RCE 简单分析</title>
     <link>/cve-2022-22954-vmware-workspace-one-access-ssti-rce/</link>
     <pubDate>Mon, 18 Apr 2022 14:26:27 &#43;0800</pubDate>
@@ -28,11 +21,11 @@
     <guid>/%E4%BA%91%E5%87%BD%E6%95%B0%E6%90%AD%E5%BB%BA%E4%BB%A3%E7%90%86%E6%B1%A0/</guid>
     <description><![CDATA[云函数的理解 云函数（Serverless Cloud Function，SCF）是云计算厂商为企业和开发者们提供的无服务器执行环境，可在无需购买和管理服]]></description>
 </item><item>
-    <title>Spring Cloud Function SpEL RCE 简单分析</title>
-    <link>/spring-cloud-function-spel/</link>
+    <title>CVE-2022-22963 Spring Cloud Function SpEL RCE 简单分析</title>
+    <link>/cve-2022-22963-spring-cloud-function-spel/</link>
     <pubDate>Mon, 28 Mar 2022 11:33:57 &#43;0800</pubDate>
     <author>作者</author>
-    <guid>/spring-cloud-function-spel/</guid>
+    <guid>/cve-2022-22963-spring-cloud-function-spel/</guid>
     <description><![CDATA[前言 刚曝出来的Spel表达式注入漏洞，这里简单分析一下 漏洞版本 1 3.0.0.RELEASE &lt;= Spring Cloud Function &lt;= 3.2.2 环境搭建 地址：https://github.com/sprin]]></description>
 </item><item>
     <title>CVE-2022-22947 Spring Cloud Gateway SPEL RCE 简单分析</title>
@@ -76,5 +69,12 @@
     <author>作者</author>
     <guid>/cve-2021-44228-apache-log4j2-rce/</guid>
     <description><![CDATA[简介 Apache Log4j2 是 Apache 软件基金会下的一个开源的基于 Java 的日志记录工具。Log4j2 是一个 Log4j 1.x 的重写，并且引入了大量丰富的特性。该日志框架被大量用于业务系]]></description>
+</item><item>
+    <title>CVE-2021-38294 Apache Storm Nimbus RCE 简单分析</title>
+    <link>/cve-2021-38294-apache-storm-nimbus-rce/</link>
+    <pubDate>Fri, 24 Dec 2021 16:39:53 &#43;0800</pubDate>
+    <author>作者</author>
+    <guid>/cve-2021-38294-apache-storm-nimbus-rce/</guid>
+    <description><![CDATA[简介 Apache Storm是一个免费开源、分布式、高容错的实时计算系统。Storm令持续不断的流计算变得容易，弥补了Hadoop批处理所不能满足的实时]]></description>
 </item></channel>
 </rss>
