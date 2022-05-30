@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="robots" content="noodp" />
+        <meta http-equiv="X-UA-Compatible" content="IE=edge, chrome=1">
+        <title>JDK7u21反序列化分析 - Da22le的博客</title><meta name="Description" content="好好学习 天天向上"><meta property="og:title" content="JDK7u21反序列化分析" />
+<meta property="og:description" content="前言 继续学习反序列化，这个链子正好用到了前面fastjson反序列化的TemplatesImpl类，这里就不详细讲解该类的具体用法，有兴趣的" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="/jdk7u21%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E5%88%86%E6%9E%90/" /><meta property="og:image" content="/logo.png"/><meta property="article:section" content="posts" />
+<meta property="article:published_time" content="2022-05-13T17:38:49+08:00" />
+<meta property="article:modified_time" content="2022-05-13T17:38:49+08:00" />
+
+<meta name="twitter:card" content="summary_large_image"/>
+<meta name="twitter:image" content="/logo.png"/>
+
+<meta name="twitter:title" content="JDK7u21反序列化分析"/>
+<meta name="twitter:description" content="前言 继续学习反序列化，这个链子正好用到了前面fastjson反序列化的TemplatesImpl类，这里就不详细讲解该类的具体用法，有兴趣的"/>
+<meta name="application-name" content="LoveIt">
+<meta name="apple-mobile-web-app-title" content="LoveIt"><meta name="theme-color" content="#ffffff"><meta name="msapplication-TileColor" content="#da532c"><link rel="shortcut icon" type="image/x-icon" href="/favicon.ico" />
+        <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+        <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png"><link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png"><link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5"><link rel="manifest" href="/site.webmanifest"><link rel="canonical" href="/jdk7u21%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E5%88%86%E6%9E%90/" /><link rel="prev" href="/fastjson-%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E5%88%86%E6%9E%90/" /><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/normalize.css@8.0.1/normalize.min.css"><link rel="stylesheet" href="/css/style.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.13.0/css/all.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@3.7.2/animate.min.css"><script type="application/ld+json">
+    {
+        "@context": "http://schema.org",
+        "@type": "BlogPosting",
+        "headline": "JDK7u21反序列化分析",
+        "inLanguage": "zh-CN",
+        "mainEntityOfPage": {
+            "@type": "WebPage",
+            "@id": "\/jdk7u21%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E5%88%86%E6%9E%90\/"
+        },"image": ["\/images\/Apple-Devices-Preview.png"],"genre": "posts","wordcount":  2558 ,
+        "url": "\/jdk7u21%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E5%88%86%E6%9E%90\/","datePublished": "2022-05-13T17:38:49+08:00","dateModified": "2022-05-13T17:38:49+08:00","license": "This work is licensed under a Creative Commons Attribution-NonCommercial 4.0 International License.","publisher": {
+            "@type": "Organization",
+            "name": "Da22le","logo": "\/images\/avatar.png"},"author": {
+                "@type": "Person",
+                "name": "Da22le"
+            },"description": ""
+    }
+    </script></head>
+    <body header-desktop="fixed" header-mobile="auto"><script type="text/javascript">(window.localStorage && localStorage.getItem('theme') ? localStorage.getItem('theme') === 'dark' : ('auto' === 'auto' ? window.matchMedia('(prefers-color-scheme: dark)').matches : 'auto' === 'dark')) && document.body.setAttribute('theme', 'dark');</script>
+
+        <div id="mask"></div><div class="wrapper"><header class="desktop" id="header-desktop">
+    <div class="header-wrapper">
+        <div class="header-title">
+            <a href="/" title="Da22le的博客"><span class="header-title-pre"><i class='far fa-kiss-wink-heart fa-fw'></i></span>Da22le</a>
+        </div>
+        <div class="menu">
+            <div class="menu-inner"><a class="menu-item" href="/posts/"> 所有文章 </a><a class="menu-item" href="/about/"> 关于 </a><a class="menu-item" href="/https:/github.com/Da22le" title="GitHub"><i class='fab fa-github fa-fw'></i>  </a><span class="menu-item delimiter"></span><span class="menu-item search" id="search-desktop">
+                        <input type="text" placeholder="搜索文章标题或内容..." id="search-input-desktop">
+                        <a href="javascript:void(0);" class="search-button search-toggle" id="search-toggle-desktop" title="搜索">
+                            <i class="fas fa-search fa-fw"></i>
+                        </a>
+                        <a href="javascript:void(0);" class="search-button search-clear" id="search-clear-desktop" title="清空">
+                            <i class="fas fa-times-circle fa-fw"></i>
+                        </a>
+                        <span class="search-button search-loading" id="search-loading-desktop">
+                            <i class="fas fa-spinner fa-fw fa-spin"></i>
+                        </span>
+                    </span><a href="javascript:void(0);" class="menu-item theme-switch" title="切换主题">
+                    <i class="fas fa-adjust fa-fw"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+</header><header class="mobile" id="header-mobile">
+    <div class="header-container">
+        <div class="header-wrapper">
+            <div class="header-title">
+                <a href="/" title="Da22le的博客"><span class="header-title-pre"><i class='far fa-kiss-wink-heart fa-fw'></i></span>Da22le</a>
+            </div>
+            <div class="menu-toggle" id="menu-toggle-mobile">
+                <span></span><span></span><span></span>
+            </div>
+        </div>
+        <div class="menu" id="menu-mobile"><div class="search-wrapper">
+                    <div class="search mobile" id="search-mobile">
+                        <input type="text" placeholder="搜索文章标题或内容..." id="search-input-mobile">
+                        <a href="javascript:void(0);" class="search-button search-toggle" id="search-toggle-mobile" title="搜索">
+                            <i class="fas fa-search fa-fw"></i>
+                        </a>
+                        <a href="javascript:void(0);" class="search-button search-clear" id="search-clear-mobile" title="清空">
+                            <i class="fas fa-times-circle fa-fw"></i>
+                        </a>
+                        <span class="search-button search-loading" id="search-loading-mobile">
+                            <i class="fas fa-spinner fa-fw fa-spin"></i>
+                        </span>
+                    </div>
+                    <a href="javascript:void(0);" class="search-cancel" id="search-cancel-mobile">
+                        取消
+                    </a>
+                </div><a class="menu-item" href="/posts/" title="">所有文章</a><a class="menu-item" href="/about/" title="">关于</a><a class="menu-item" href="/https:/github.com/Da22le" title="GitHub"><i class='fab fa-github fa-fw'></i></a><a href="javascript:void(0);" class="menu-item theme-switch" title="切换主题">
+                <i class="fas fa-adjust fa-fw"></i>
+            </a></div>
+    </div>
+</header>
+<div class="search-dropdown desktop">
+    <div id="search-dropdown-desktop"></div>
+</div>
+<div class="search-dropdown mobile">
+    <div id="search-dropdown-mobile"></div>
+</div>
+<main class="main">
+                <div class="container"><div class="toc" id="toc-auto">
+            <h2 class="toc-title">目录</h2>
+            <div class="toc-content always-active" id="toc-content-auto"></div>
+        </div><article class="page single"><h1 class="single-title animated flipInX">JDK7u21反序列化分析</h1><div class="post-meta">
+            <div class="post-meta-line"><span class="post-author"><a href="/" title="Author" rel=" author" class="author"><i class="fas fa-user-circle fa-fw"></i>Da22le</a></span></div>
+            <div class="post-meta-line"><i class="far fa-calendar-alt fa-fw"></i>&nbsp;<time datetime="2022-05-13">2022-05-13</time>&nbsp;<i class="fas fa-pencil-alt fa-fw"></i>&nbsp;约 2558 字&nbsp;
+                <i class="far fa-clock fa-fw"></i>&nbsp;预计阅读 6 分钟&nbsp;<span id="/jdk7u21%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E5%88%86%E6%9E%90/" class="leancloud_visitors" data-flag-title="JDK7u21反序列化分析">
+                        <i class="far fa-eye fa-fw"></i>&nbsp;<span class=leancloud-visitors-count></span>&nbsp;次阅读
+                    </span>&nbsp;</div>
+        </div><div class="details toc" id="toc-static"  kept="">
+                <div class="details-summary toc-title">
+                    <span>目录</span>
+                    <span><i class="details-icon fas fa-angle-right"></i></span>
+                </div>
+                <div class="details-content toc-content" id="toc-content-static"><nav id="TableOfContents">
+  <ul>
+    <li><a href="#前言">前言</a></li>
+    <li><a href="#环境复现">环境复现</a></li>
+    <li><a href="#漏洞分析">漏洞分析</a></li>
+    <li><a href="#参考链接">参考链接</a></li>
+  </ul>
+</nav></div>
+            </div><div class="content" id="content"><h1 id="前言">前言</h1>
+<p>继续学习反序列化，这个链子正好用到了前面fastjson反序列化的<code>TemplatesImpl</code>类，这里就不详细讲解该类的具体用法，有兴趣的请看我上一篇fastjson反序列化文章和cc2分析文章</p>
+<h1 id="环境复现">环境复现</h1>
+<p>这里直接引用了<code>ysoserial.jar</code>这个包，使用其自带的paylaod</p>
+<p><img
+        class="lazyload"
+        src="/svg/loading.min.svg"
+        data-src="https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/6e86badc-391c-feef-a27d-75052173452a.png"
+        data-srcset="https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/6e86badc-391c-feef-a27d-75052173452a.png, https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/6e86badc-391c-feef-a27d-75052173452a.png 1.5x, https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/6e86badc-391c-feef-a27d-75052173452a.png 2x"
+        data-sizes="auto"
+        alt="https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/6e86badc-391c-feef-a27d-75052173452a.png"
+        title="1.png" /></p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span><span class="lnt">30
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="kn">import</span> <span class="nn">ysoserial.payloads.Jdk7u21</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">java.io.ByteArrayInputStream</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">java.io.ByteArrayOutputStream</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">java.io.ObjectInputStream</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">java.io.ObjectOutputStream</span><span class="o">;</span>
+
+<span class="kd">public</span> <span class="kd">class</span> <span class="nc">JDK7u21</span> <span class="o">{</span>
+    <span class="kd">public</span> <span class="kd">static</span> <span class="kt">void</span> <span class="nf">main</span><span class="o">(</span><span class="n">String</span><span class="o">[]</span> <span class="n">args</span><span class="o">)</span> <span class="o">{</span>
+        <span class="k">try</span> <span class="o">{</span>
+            <span class="n">Object</span> <span class="n">calc</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Jdk7u21</span><span class="o">().</span><span class="na">getObject</span><span class="o">(</span><span class="s">&#34;calc&#34;</span><span class="o">);</span>
+
+            <span class="n">ByteArrayOutputStream</span> <span class="n">byteArrayOutputStream</span> <span class="o">=</span> <span class="k">new</span> <span class="n">ByteArrayOutputStream</span><span class="o">();</span><span class="c1">//用于存放person对象序列化byte数组的输出流
+</span><span class="c1"></span>
+            <span class="n">ObjectOutputStream</span> <span class="n">objectOutputStream</span> <span class="o">=</span> <span class="k">new</span> <span class="n">ObjectOutputStream</span><span class="o">(</span><span class="n">byteArrayOutputStream</span><span class="o">);</span>
+            <span class="n">objectOutputStream</span><span class="o">.</span><span class="na">writeObject</span><span class="o">(</span><span class="n">calc</span><span class="o">);</span><span class="c1">//序列化对象
+</span><span class="c1"></span>            <span class="n">objectOutputStream</span><span class="o">.</span><span class="na">flush</span><span class="o">();</span>
+            <span class="n">objectOutputStream</span><span class="o">.</span><span class="na">close</span><span class="o">();</span>
+
+            <span class="kt">byte</span><span class="o">[]</span> <span class="n">bytes</span> <span class="o">=</span> <span class="n">byteArrayOutputStream</span><span class="o">.</span><span class="na">toByteArray</span><span class="o">();</span> <span class="c1">//读取序列化后的对象byte数组
+</span><span class="c1"></span>
+            <span class="n">ByteArrayInputStream</span> <span class="n">byteArrayInputStream</span> <span class="o">=</span> <span class="k">new</span> <span class="n">ByteArrayInputStream</span><span class="o">(</span><span class="n">bytes</span><span class="o">);</span><span class="c1">//存放byte数组的输入流
+</span><span class="c1"></span>
+            <span class="n">ObjectInputStream</span> <span class="n">objectInputStream</span> <span class="o">=</span> <span class="k">new</span> <span class="n">ObjectInputStream</span><span class="o">(</span><span class="n">byteArrayInputStream</span><span class="o">);</span>
+            <span class="n">Object</span> <span class="n">o</span> <span class="o">=</span> <span class="n">objectInputStream</span><span class="o">.</span><span class="na">readObject</span><span class="o">();</span>
+        <span class="o">}</span> <span class="k">catch</span> <span class="o">(</span><span class="n">Exception</span> <span class="n">e</span><span class="o">)</span> <span class="o">{</span>
+            <span class="n">e</span><span class="o">.</span><span class="na">printStackTrace</span><span class="o">();</span>
+        <span class="o">}</span>
+    <span class="o">}</span>
+<span class="o">}</span>
+
+</code></pre></td></tr></table>
+</div>
+</div><h1 id="漏洞分析">漏洞分析</h1>
+<p>首先来看一下<code>LinkedHashSet</code>这个类，它继承了<code>HashSet</code>并实现了<code>Serializable</code>可以进行反序列化，其<code>readObject()</code>方法在父类<code>HashSet</code>中</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="kd">public</span> <span class="kd">class</span> <span class="nc">LinkedHashSet</span><span class="o">&lt;</span><span class="n">E</span><span class="o">&gt;</span>
+    <span class="kd">extends</span> <span class="n">HashSet</span><span class="o">&lt;</span><span class="n">E</span><span class="o">&gt;</span>
+    <span class="kd">implements</span> <span class="n">Set</span><span class="o">&lt;</span><span class="n">E</span><span class="o">&gt;,</span> <span class="n">Cloneable</span><span class="o">,</span> <span class="n">java</span><span class="o">.</span><span class="na">io</span><span class="o">.</span><span class="na">Serializable</span>
+</code></pre></td></tr></table>
+</div>
+</div><p>在其方法内会对map进行put操作，其中<code>PRESENT</code>是new了一个Object空对象</p>
+<p><img
+        class="lazyload"
+        src="/svg/loading.min.svg"
+        data-src="https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/26ee83c9-f049-ec24-b6fd-26b33cec71d6.png"
+        data-srcset="https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/26ee83c9-f049-ec24-b6fd-26b33cec71d6.png, https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/26ee83c9-f049-ec24-b6fd-26b33cec71d6.png 1.5x, https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/26ee83c9-f049-ec24-b6fd-26b33cec71d6.png 2x"
+        data-sizes="auto"
+        alt="https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/26ee83c9-f049-ec24-b6fd-26b33cec71d6.png"
+        title="2.png" /></p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"> <span class="kd">private</span> <span class="kd">static</span> <span class="kd">final</span> <span class="n">Object</span> <span class="n">PRESENT</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Object</span><span class="o">();</span>
+</code></pre></td></tr></table>
+</div>
+</div><p>进入到<code>java.util.HashMap#put</code>中，在if判断语句内有这样一个关键的点<code>key.equals(k)</code>，为什么它是关键呢？我们知道在动态代理中有这么一个知识点：<strong>动态代理对象每执行一个方法时，都会被转发到实现InvocationHandler接口类的invoke方法</strong>。也就是说在反序列化时我们将一个动态代理的对象放入到map中，在该方法中执行<code>key.equals(k)</code>时就会触发代理类的<code>invoke</code>方法</p>
+<p><img
+        class="lazyload"
+        src="/svg/loading.min.svg"
+        data-src="https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/30774eb5-06a0-0456-0a11-c967a875d7af.png"
+        data-srcset="https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/30774eb5-06a0-0456-0a11-c967a875d7af.png, https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/30774eb5-06a0-0456-0a11-c967a875d7af.png 1.5x, https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/30774eb5-06a0-0456-0a11-c967a875d7af.png 2x"
+        data-sizes="auto"
+        alt="https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/30774eb5-06a0-0456-0a11-c967a875d7af.png"
+        title="3.png" /></p>
+<p>在<code>AnnotationInvocationHandler</code>类的<code>invoke</code>方法中，会对动态代理对象执行的方法名字进行判断，当为<code>equals</code>时会进入到<code>equalsImpl</code>中</p>
+<p><img
+        class="lazyload"
+        src="/svg/loading.min.svg"
+        data-src="https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/1aa3ca3f-bffe-7319-12c4-66db3a7a65a2.png"
+        data-srcset="https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/1aa3ca3f-bffe-7319-12c4-66db3a7a65a2.png, https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/1aa3ca3f-bffe-7319-12c4-66db3a7a65a2.png 1.5x, https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/1aa3ca3f-bffe-7319-12c4-66db3a7a65a2.png 2x"
+        data-sizes="auto"
+        alt="https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/1aa3ca3f-bffe-7319-12c4-66db3a7a65a2.png"
+        title="4.png" /></p>
+<p>在<code>equalsImpl</code>中会对传进来的var1类中的方法进行遍历，并通过<code>var8 = var5.invoke(var1)</code>去调用其方法，可以看到当我们传进去的类为<code>TemplatesImpl</code>时，会遍历出<code>getOutputProperties</code>方法并且去调用该方法，而我们知道调用了<code>getOutputProperties</code>就会最后触发<code>TemplatesImpl.newTransformer()</code>然后进行实例化触发恶意操作</p>
+<p><img
+        class="lazyload"
+        src="/svg/loading.min.svg"
+        data-src="https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/f2bc55ae-b21b-b91d-e3e1-1940bc070b5d.png"
+        data-srcset="https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/f2bc55ae-b21b-b91d-e3e1-1940bc070b5d.png, https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/f2bc55ae-b21b-b91d-e3e1-1940bc070b5d.png 1.5x, https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/f2bc55ae-b21b-b91d-e3e1-1940bc070b5d.png 2x"
+        data-sizes="auto"
+        alt="https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/f2bc55ae-b21b-b91d-e3e1-1940bc070b5d.png"
+        title="5.png" /></p>
+<p>这样整条链子就齐了，通过javassist构造一个恶意类，然后对LinkedHashSet进行反序列化触发，其中肯定是需要满足一些条件的，这里就不提TemplatesImpl要满足的点，来看一下在触发<code>key.equals(k)</code>时需要满足的点，这是整个链子最厉害的点</p>
+<p>先来看一下第一次进行<code>map.put()</code>传进去的值是什么，可以看见第一次是传进去的<code>TemplatesImpl</code>类</p>
+<p><img
+        class="lazyload"
+        src="/svg/loading.min.svg"
+        data-src="https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/f3b8869f-c193-7771-1c84-fcc57aaa605e.png"
+        data-srcset="https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/f3b8869f-c193-7771-1c84-fcc57aaa605e.png, https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/f3b8869f-c193-7771-1c84-fcc57aaa605e.png 1.5x, https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/f3b8869f-c193-7771-1c84-fcc57aaa605e.png 2x"
+        data-sizes="auto"
+        alt="https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/f3b8869f-c193-7771-1c84-fcc57aaa605e.png"
+        title="6.png" /></p>
+<p>然后获取<code>key</code>的hash，在通过<code>indexFor()</code>获取hash的索引值，然后在for循环中根据索引值进行判断，其中<code>table</code>是一个Entry数组，用来存放我们传进来的键值对，为了后续对新的value和老的value进行判断，其中还有这么一个条件<code>e != null</code>，但是这是我们第一次传进来的键值对，<code>Entry</code>本身就是空的，因此直接跳过循环进行自增，并放入到<code>Entry</code>中</p>
+<p><img
+        class="lazyload"
+        src="/svg/loading.min.svg"
+        data-src="https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/881de719-0333-3ddb-ee45-35b23ba27f77.png"
+        data-srcset="https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/881de719-0333-3ddb-ee45-35b23ba27f77.png, https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/881de719-0333-3ddb-ee45-35b23ba27f77.png 1.5x, https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/881de719-0333-3ddb-ee45-35b23ba27f77.png 2x"
+        data-sizes="auto"
+        alt="https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/881de719-0333-3ddb-ee45-35b23ba27f77.png"
+        title="7.png" /></p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-java" data-lang="java">    <span class="kd">transient</span> <span class="n">Entry</span><span class="o">&lt;</span><span class="n">K</span><span class="o">,</span><span class="n">V</span><span class="o">&gt;[]</span> <span class="n">table</span><span class="o">;</span>
+</code></pre></td></tr></table>
+</div>
+</div><p>第二次进行<code>map.put()</code>传进去的值是我们封装的<code>AnnotationInvocationHandler</code>对象</p>
+<p><img
+        class="lazyload"
+        src="/svg/loading.min.svg"
+        data-src="https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/d2ac6bbf-ca2c-7098-05a0-b132a6474dd1.png"
+        data-srcset="https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/d2ac6bbf-ca2c-7098-05a0-b132a6474dd1.png, https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/d2ac6bbf-ca2c-7098-05a0-b132a6474dd1.png 1.5x, https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/d2ac6bbf-ca2c-7098-05a0-b132a6474dd1.png 2x"
+        data-sizes="auto"
+        alt="https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/d2ac6bbf-ca2c-7098-05a0-b132a6474dd1.png"
+        title="8.png" /></p>
+<p>这一次就会触发<code>key.equals(k)</code>，但是这里我们需要满足两个条件，才会去触发<code>key.equals(k)</code></p>
+<p><img
+        class="lazyload"
+        src="/svg/loading.min.svg"
+        data-src="https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/55a96a90-f769-2f35-43e9-cfc08dd2df9d.png"
+        data-srcset="https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/55a96a90-f769-2f35-43e9-cfc08dd2df9d.png, https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/55a96a90-f769-2f35-43e9-cfc08dd2df9d.png 1.5x, https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/55a96a90-f769-2f35-43e9-cfc08dd2df9d.png 2x"
+        data-sizes="auto"
+        alt="https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/55a96a90-f769-2f35-43e9-cfc08dd2df9d.png"
+        title="9.png" /></p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="n">e</span><span class="o">.</span><span class="na">hash</span> <span class="o">==</span> <span class="n">hash</span> <span class="o">&amp;&amp;</span> <span class="o">((</span><span class="n">k</span> <span class="o">=</span> <span class="n">e</span><span class="o">.</span><span class="na">key</span><span class="o">)</span> <span class="o">==</span> <span class="n">key</span> <span class="o">||</span> <span class="n">key</span><span class="o">.</span><span class="na">equals</span><span class="o">(</span><span class="n">k</span><span class="o">))</span>
+</code></pre></td></tr></table>
+</div>
+</div><ul>
+<li>e.hash == hash 为true</li>
+<li>(k = e.key) == key 为false</li>
+</ul>
+<p>其中<code>e.hash == hash</code>要为true就是说从<code>Entry</code>中提取的hash要和传进来的key的hash要一致，而我们知道for循环是为了更新相同key的value值（其中相同key的判断条件为hash值相等），可是我们传进来的两个key根本就不相同分别是<code>TemplatesImpl</code>和封装的<code>AnnotationInvocationHandler</code>代理对象，如何让其hash相等呢？这里用到了一个新的知识点<strong>hash碰撞</strong></p>
+<blockquote>
+<p>hash碰撞就是指两个不同的字符串计算得到的hash值相同</p>
+</blockquote>
+<p>继续看，在第二次进行<code>map.put()</code>时，进行hash值的计算，会通过<code>k.hashCode()</code>计算hash值，而此时k为动态代理对象，它会触发执行<code>AnnotationInvocationHandler</code>的<code>invoke</code>方法</p>
+<p><img
+        class="lazyload"
+        src="/svg/loading.min.svg"
+        data-src="https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/18e87c98-ce42-e609-8898-93ffc67ad3fc.png"
+        data-srcset="https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/18e87c98-ce42-e609-8898-93ffc67ad3fc.png, https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/18e87c98-ce42-e609-8898-93ffc67ad3fc.png 1.5x, https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/18e87c98-ce42-e609-8898-93ffc67ad3fc.png 2x"
+        data-sizes="auto"
+        alt="https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/18e87c98-ce42-e609-8898-93ffc67ad3fc.png"
+        title="10.png" /></p>
+<p>其中进行判断，如果动态代理对象执行的方法名为<code>hashCode</code>时，进入到<code>hashCodeImpl()</code>中</p>
+<p><img
+        class="lazyload"
+        src="/svg/loading.min.svg"
+        data-src="https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/5fa0e570-9e88-2cbd-ef6c-31d2bd46f227.png"
+        data-srcset="https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/5fa0e570-9e88-2cbd-ef6c-31d2bd46f227.png, https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/5fa0e570-9e88-2cbd-ef6c-31d2bd46f227.png 1.5x, https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/5fa0e570-9e88-2cbd-ef6c-31d2bd46f227.png 2x"
+        data-sizes="auto"
+        alt="https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/5fa0e570-9e88-2cbd-ef6c-31d2bd46f227.png"
+        title="11.png" /></p>
+<p>在<code>hashCodeImpl()</code>中，通过迭代器对<code>memberValues</code>对象进行遍历，其中存放着我们传进去的键值对</p>
+<p><img
+        class="lazyload"
+        src="/svg/loading.min.svg"
+        data-src="https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/0f2139dc-8c3a-8c4d-789c-9f5466c52201.png"
+        data-srcset="https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/0f2139dc-8c3a-8c4d-789c-9f5466c52201.png, https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/0f2139dc-8c3a-8c4d-789c-9f5466c52201.png 1.5x, https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/0f2139dc-8c3a-8c4d-789c-9f5466c52201.png 2x"
+        data-sizes="auto"
+        alt="https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/0f2139dc-8c3a-8c4d-789c-9f5466c52201.png"
+        title="12.png" /></p>
+<p><img
+        class="lazyload"
+        src="/svg/loading.min.svg"
+        data-src="https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/f096e357-7651-4ab4-ca9d-68f99ad334a1.png"
+        data-srcset="https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/f096e357-7651-4ab4-ca9d-68f99ad334a1.png, https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/f096e357-7651-4ab4-ca9d-68f99ad334a1.png 1.5x, https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/f096e357-7651-4ab4-ca9d-68f99ad334a1.png 2x"
+        data-sizes="auto"
+        alt="https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/f096e357-7651-4ab4-ca9d-68f99ad334a1.png"
+        title="13.png" /></p>
+<p>来看下面这段代码，其中通过异或来获取hash值赋值给var1，其中<code>127 * ((String)var3.getKey()).hashCode()</code>对传进来的key值进行获取hash，此时key为<code>f5a5a608</code>，而它的hash值为0，然后<code>memberValueHashCode(var3.getValue())</code>是对传进来的value值进行获取hash，其中如果值不为数组的话返回hash</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="n">var1</span> <span class="o">+=</span> <span class="n">127</span> <span class="o">*</span> <span class="o">((</span><span class="n">String</span><span class="o">)</span><span class="n">var3</span><span class="o">.</span><span class="na">getKey</span><span class="o">()).</span><span class="na">hashCode</span><span class="o">()</span> <span class="o">^</span> <span class="n">memberValueHashCode</span><span class="o">(</span><span class="n">var3</span><span class="o">.</span><span class="na">getValue</span><span class="o">())</span>
+</code></pre></td></tr></table>
+</div>
+</div><p><img
+        class="lazyload"
+        src="/svg/loading.min.svg"
+        data-src="https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/fea2fbe5-ce0c-72be-5b32-05770b98d3e3.png"
+        data-srcset="https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/fea2fbe5-ce0c-72be-5b32-05770b98d3e3.png, https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/fea2fbe5-ce0c-72be-5b32-05770b98d3e3.png 1.5x, https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/fea2fbe5-ce0c-72be-5b32-05770b98d3e3.png 2x"
+        data-sizes="auto"
+        alt="https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/fea2fbe5-ce0c-72be-5b32-05770b98d3e3.png"
+        title="14.png" /></p>
+<p>我们知道0和任何数字进行异或，得到的结果都为被异或数的本身，而此时value为<code>TemplatesImpl</code>，也就是说在第二次进行<code>map.put()</code>时，进行hash值的计算得到的hash值为<code>TemplatesImpl</code>的hash和第一次传进来的一样，这样会在<code>java.util.HashMap#put</code>中符合for循环的判断，为相同hash的key进行value的替换，此时会进入到if条件语句中</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="n">e</span><span class="o">.</span><span class="na">hash</span> <span class="o">==</span> <span class="n">hash</span> <span class="o">&amp;&amp;</span> <span class="o">((</span><span class="n">k</span> <span class="o">=</span> <span class="n">e</span><span class="o">.</span><span class="na">key</span><span class="o">)</span> <span class="o">==</span> <span class="n">key</span> <span class="o">||</span> <span class="n">key</span><span class="o">.</span><span class="na">equals</span><span class="o">(</span><span class="n">k</span><span class="o">))</span>
+</code></pre></td></tr></table>
+</div>
+</div><p>此时<code>e.hash == hash</code>为true，而<code>(k = e.key) == key</code>必定为false因为是比较两次传进来的key是否相等，而我们传进来的两个key分别是<code>TemplatesImpl</code>和封装的<code>AnnotationInvocationHandler</code>代理对象，因此这个条件也满足，然后就会触发<code>key.equals(k)</code>，执行恶意操作</p>
+<h1 id="参考链接">参考链接</h1>
+<ol>
+<li><a href="https://mp.weixin.qq.com/s/qlg3IzyIc79GABSSUyt-OQ" target="_blank" rel="noopener noreffer">https://mp.weixin.qq.com/s/qlg3IzyIc79GABSSUyt-OQ</a></li>
+<li><a href="https://forum.90sec.com/t/topic/1707/1" target="_blank" rel="noopener noreffer">https://forum.90sec.com/t/topic/1707/1</a></li>
+<li><a href="https://y4er.com/post/ysoserial-jdk7u21/" target="_blank" rel="noopener noreffer">https://y4er.com/post/ysoserial-jdk7u21/</a></li>
+</ol>
+</div><div class="post-footer" id="post-footer">
+    <div class="post-info">
+        <div class="post-info-line">
+            <div class="post-info-mod">
+                <span>更新于 2022-05-13</span>
+            </div>
+            <div class="post-info-license"></div>
+        </div>
+        <div class="post-info-line">
+            <div class="post-info-md"></div>
+            <div class="post-info-share">
+                <span><a href="javascript:void(0);" title="分享到 Twitter" data-sharer="twitter" data-url="/jdk7u21%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E5%88%86%E6%9E%90/" data-title="JDK7u21反序列化分析" data-via="Da22lec"><i class="fab fa-twitter fa-fw"></i></a><a href="javascript:void(0);" title="分享到 Facebook" data-sharer="facebook" data-url="/jdk7u21%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E5%88%86%E6%9E%90/"><i class="fab fa-facebook-square fa-fw"></i></a><a href="javascript:void(0);" title="分享到 Hacker News" data-sharer="hackernews" data-url="/jdk7u21%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E5%88%86%E6%9E%90/" data-title="JDK7u21反序列化分析"><i class="fab fa-hacker-news fa-fw"></i></a><a href="javascript:void(0);" title="分享到 Line" data-sharer="line" data-url="/jdk7u21%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E5%88%86%E6%9E%90/" data-title="JDK7u21反序列化分析"><i data-svg-src="https://cdn.jsdelivr.net/npm/simple-icons@2.14.0/icons/line.svg"></i></a><a href="javascript:void(0);" title="分享到 微博" data-sharer="weibo" data-url="/jdk7u21%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E5%88%86%E6%9E%90/" data-title="JDK7u21反序列化分析"><i class="fab fa-weibo fa-fw"></i></a></span>
+            </div>
+        </div>
+    </div>
+
+    <div class="post-info-more">
+        <section class="post-tags"></section>
+        <section>
+            <span><a href="javascript:void(0);" onclick="window.history.back();">返回</a></span>&nbsp;|&nbsp;<span><a href="/">主页</a></span>
+        </section>
+    </div>
+
+    <div class="post-nav"><a href="/fastjson-%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E5%88%86%E6%9E%90/" class="prev" rel="prev" title="Fastjson 反序列化分析"><i class="fas fa-angle-left fa-fw"></i>Fastjson 反序列化分析</a></div>
+</div>
+<div id="comments"><div id="valine" class="comment"></div><noscript>
+                Please enable JavaScript to view the comments powered by <a href="https://valine.js.org/">Valine</a>.
+            </noscript></div></article></div>
+            </main><footer class="footer">
+        <div class="footer-container"><div class="footer-line"><i class="far fa-copyright fa-fw"></i><span itemprop="copyrightYear">2022</span></div>
+        </div>
+    </footer></div>
+
+        <div id="fixed-buttons"><a href="#" id="back-to-top" class="fixed-button" title="回到顶部">
+                <i class="fas fa-arrow-up fa-fw"></i>
+            </a><a href="#" id="view-comments" class="fixed-button" title="查看评论">
+                <i class="fas fa-comment fa-fw"></i>
+            </a>
+        </div><link rel="stylesheet" href="/lib/valine/valine.min.css"><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/valine@1.4.14/dist/Valine.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/smooth-scroll@16.1.3/dist/smooth-scroll.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/autocomplete.js@0.37.1/dist/autocomplete.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lunr@2.3.8/lunr.min.js"></script><script type="text/javascript" src="/lib/lunr/lunr.stemmer.support.min.js"></script><script type="text/javascript" src="/lib/lunr/lunr.zh.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lazysizes@5.2.2/lazysizes.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/clipboard@2.0.6/dist/clipboard.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/sharer.js@0.4.0/sharer.min.js"></script><script type="text/javascript">window.config={"code":{"copyTitle":"复制到剪贴板","maxShownLines":100},"comment":{"valine":{"appId":"QGzwQXOqs5JOhN4RGPOkR2mR-MdYXbMMI","appKey":"WBmoGyJtbqUswvfLh6L8iEBr","avatar":"mp","el":"#valine","emojiCDN":"https://cdn.jsdelivr.net/npm/emoji-datasource-google@5.0.1/img/google/64/","emojiMaps":{"100":"1f4af.png","alien":"1f47d.png","anger":"1f4a2.png","angry":"1f620.png","anguished":"1f627.png","astonished":"1f632.png","black_heart":"1f5a4.png","blue_heart":"1f499.png","blush":"1f60a.png","bomb":"1f4a3.png","boom":"1f4a5.png","broken_heart":"1f494.png","brown_heart":"1f90e.png","clown_face":"1f921.png","cold_face":"1f976.png","cold_sweat":"1f630.png","confounded":"1f616.png","confused":"1f615.png","cry":"1f622.png","crying_cat_face":"1f63f.png","cupid":"1f498.png","dash":"1f4a8.png","disappointed":"1f61e.png","disappointed_relieved":"1f625.png","dizzy":"1f4ab.png","dizzy_face":"1f635.png","drooling_face":"1f924.png","exploding_head":"1f92f.png","expressionless":"1f611.png","face_vomiting":"1f92e.png","face_with_cowboy_hat":"1f920.png","face_with_hand_over_mouth":"1f92d.png","face_with_head_bandage":"1f915.png","face_with_monocle":"1f9d0.png","face_with_raised_eyebrow":"1f928.png","face_with_rolling_eyes":"1f644.png","face_with_symbols_on_mouth":"1f92c.png","face_with_thermometer":"1f912.png","fearful":"1f628.png","flushed":"1f633.png","frowning":"1f626.png","ghost":"1f47b.png","gift_heart":"1f49d.png","green_heart":"1f49a.png","grimacing":"1f62c.png","grin":"1f601.png","grinning":"1f600.png","hankey":"1f4a9.png","hear_no_evil":"1f649.png","heart":"2764-fe0f.png","heart_decoration":"1f49f.png","heart_eyes":"1f60d.png","heart_eyes_cat":"1f63b.png","heartbeat":"1f493.png","heartpulse":"1f497.png","heavy_heart_exclamation_mark_ornament":"2763-fe0f.png","hole":"1f573-fe0f.png","hot_face":"1f975.png","hugging_face":"1f917.png","hushed":"1f62f.png","imp":"1f47f.png","innocent":"1f607.png","japanese_goblin":"1f47a.png","japanese_ogre":"1f479.png","joy":"1f602.png","joy_cat":"1f639.png","kiss":"1f48b.png","kissing":"1f617.png","kissing_cat":"1f63d.png","kissing_closed_eyes":"1f61a.png","kissing_heart":"1f618.png","kissing_smiling_eyes":"1f619.png","laughing":"1f606.png","left_speech_bubble":"1f5e8-fe0f.png","love_letter":"1f48c.png","lying_face":"1f925.png","mask":"1f637.png","money_mouth_face":"1f911.png","nauseated_face":"1f922.png","nerd_face":"1f913.png","neutral_face":"1f610.png","no_mouth":"1f636.png","open_mouth":"1f62e.png","orange_heart":"1f9e1.png","partying_face":"1f973.png","pensive":"1f614.png","persevere":"1f623.png","pleading_face":"1f97a.png","pouting_cat":"1f63e.png","purple_heart":"1f49c.png","rage":"1f621.png","relaxed":"263a-fe0f.png","relieved":"1f60c.png","revolving_hearts":"1f49e.png","right_anger_bubble":"1f5ef-fe0f.png","robot_face":"1f916.png","rolling_on_the_floor_laughing":"1f923.png","scream":"1f631.png","scream_cat":"1f640.png","see_no_evil":"1f648.png","shushing_face":"1f92b.png","skull":"1f480.png","skull_and_crossbones":"2620-fe0f.png","sleeping":"1f634.png","sleepy":"1f62a.png","slightly_frowning_face":"1f641.png","slightly_smiling_face":"1f642.png","smile":"1f604.png","smile_cat":"1f638.png","smiley":"1f603.png","smiley_cat":"1f63a.png","smiling_face_with_3_hearts":"1f970.png","smiling_imp":"1f608.png","smirk":"1f60f.png","smirk_cat":"1f63c.png","sneezing_face":"1f927.png","sob":"1f62d.png","space_invader":"1f47e.png","sparkling_heart":"1f496.png","speak_no_evil":"1f64a.png","speech_balloon":"1f4ac.png","star-struck":"1f929.png","stuck_out_tongue":"1f61b.png","stuck_out_tongue_closed_eyes":"1f61d.png","stuck_out_tongue_winking_eye":"1f61c.png","sunglasses":"1f60e.png","sweat":"1f613.png","sweat_drops":"1f4a6.png","sweat_smile":"1f605.png","thinking_face":"1f914.png","thought_balloon":"1f4ad.png","tired_face":"1f62b.png","triumph":"1f624.png","two_hearts":"1f495.png","unamused":"1f612.png","upside_down_face":"1f643.png","weary":"1f629.png","white_frowning_face":"2639-fe0f.png","white_heart":"1f90d.png","wink":"1f609.png","woozy_face":"1f974.png","worried":"1f61f.png","yawning_face":"1f971.png","yellow_heart":"1f49b.png","yum":"1f60b.png","zany_face":"1f92a.png","zipper_mouth_face":"1f910.png","zzz":"1f4a4.png"},"enableQQ":false,"highlight":true,"lang":"zh-cn","pageSize":10,"placeholder":"你的评论 ...","recordIP":true,"serverURLs":"https://leancloud.hugoloveit.com","visitor":true}},"search":{"highlightTag":"em","lunrIndexURL":"/index.json","lunrLanguageCode":"zh","lunrSegmentitURL":"/lib/lunr/lunr.segmentit.js","maxResultLength":10,"noResultsFound":"没有找到结果","snippetLength":50,"type":"lunr"}};</script><script type="text/javascript" src="/js/theme.min.js"></script></body>
+</html>
