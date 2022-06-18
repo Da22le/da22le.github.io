@@ -4,7 +4,14 @@
         <link>/posts/</link>
         <description>所有文章 | Da22le的博客</description>
         <generator>Hugo -- gohugo.io</generator><language>zh-CN</language><managingEditor>da22lecui@gmial.com (Da22le)</managingEditor>
-            <webMaster>da22lecui@gmial.com (Da22le)</webMaster><copyright>This work is licensed under a Creative Commons Attribution-NonCommercial 4.0 International License.</copyright><lastBuildDate>Fri, 10 Jun 2022 15:56:34 &#43;0800</lastBuildDate><atom:link href="/posts/" rel="self" type="application/rss+xml" /><item>
+            <webMaster>da22lecui@gmial.com (Da22le)</webMaster><copyright>This work is licensed under a Creative Commons Attribution-NonCommercial 4.0 International License.</copyright><lastBuildDate>Sat, 18 Jun 2022 15:07:07 &#43;0800</lastBuildDate><atom:link href="/posts/" rel="self" type="application/rss+xml" /><item>
+    <title>SnakeYaml 反序列化分析</title>
+    <link>/snakeyaml-%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E5%88%86%E6%9E%90/</link>
+    <pubDate>Sat, 18 Jun 2022 15:07:07 &#43;0800</pubDate>
+    <author>作者</author>
+    <guid>/snakeyaml-%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E5%88%86%E6%9E%90/</guid>
+    <description><![CDATA[前言 继续学习Yaml反序列化，SnakeYaml是Java中用来解析Yaml格式的库，可用于Java对象的序列化和反序列 反序列化分析 先导入S]]></description>
+</item><item>
     <title>Java XMLDecoder反序列化分析</title>
     <link>/java-xmldecoder%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E5%88%86%E6%9E%90/</link>
     <pubDate>Fri, 10 Jun 2022 15:56:34 &#43;0800</pubDate>
@@ -67,12 +74,5 @@
     <author>作者</author>
     <guid>/cve-2022-21350-weblogic-t3-rce/</guid>
     <description><![CDATA[简介 Oracle Fusion Middleware（组件：Core）的 Oracle WebLogic Server 产品中的漏洞。易于利用的漏洞允许未经身份验证的攻击者通过 T3 访问网络来破坏 Oracle WebLogic Serve]]></description>
-</item><item>
-    <title>Apache Commons Collections1 反序列化漏洞分析</title>
-    <link>/apache-commons-collections1/</link>
-    <pubDate>Sat, 15 Jan 2022 16:46:57 &#43;0800</pubDate>
-    <author>作者</author>
-    <guid>/apache-commons-collections1/</guid>
-    <description><![CDATA[前言 最近继续学习cc链，cc1链子中和cc5有部分重合的，这里就重点记录一下新知识 环境搭建 创建maven项目，pox.xml修改为如下内容 1]]></description>
 </item></channel>
 </rss>
