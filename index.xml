@@ -4,9 +4,16 @@
         <link>/</link>
         <description>好好学习 天天向上</description>
         <generator>Hugo -- gohugo.io</generator><language>zh-CN</language><managingEditor>da22lecui@gmail.com (Da22le)</managingEditor>
-            <webMaster>da22lecui@gmail.com (Da22le)</webMaster><copyright>This work is licensed under a Creative Commons Attribution-NonCommercial 4.0 International License.</copyright><lastBuildDate>Thu, 23 Jun 2022 14:56:20 &#43;0800</lastBuildDate>
+            <webMaster>da22lecui@gmail.com (Da22le)</webMaster><copyright>This work is licensed under a Creative Commons Attribution-NonCommercial 4.0 International License.</copyright><lastBuildDate>Wed, 13 Jul 2022 17:17:55 &#43;0800</lastBuildDate>
             <atom:link href="/index.xml" rel="self" type="application/rss+xml" />
         <item>
+    <title>CVE-2022-28219 ZOHO ManageEngine ADAudit Plus XXE注入</title>
+    <link>/cve-2022-28219-zoho-manageengine-adaudit-plus-xxe%E6%B3%A8%E5%85%A5/</link>
+    <pubDate>Wed, 13 Jul 2022 17:17:55 &#43;0800</pubDate>
+    <author>作者</author>
+    <guid>/cve-2022-28219-zoho-manageengine-adaudit-plus-xxe%E6%B3%A8%E5%85%A5/</guid>
+    <description><![CDATA[前言 最近才看到这个洞，正好无事分析一波 环境搭建 我这里使用的是Win10安装：https://archives2.manageengine.c]]></description>
+</item><item>
     <title>CVE-2022-22980 Spring Data MongoDB SpEL表达式注入</title>
     <link>/cve-2022-22980-spring-data-mongodb-spel-rce/</link>
     <pubDate>Thu, 23 Jun 2022 14:56:20 &#43;0800</pubDate>
@@ -69,12 +76,5 @@
     <author>作者</author>
     <guid>/cve-2022-22947-spring-cloud-gateway-spel-rce/</guid>
     <description><![CDATA[前言 前段时间刚爆出来的洞，很多师傅都详细分析了各自的思路和想法，不过总要自己亲手去调试分析才能更好的进步，因此有了这篇文章 漏洞版本 1 2 3 4 Spring]]></description>
-</item><item>
-    <title>Apache Commons Collections2 反序列化漏洞分析</title>
-    <link>/apache-commons-collections2/</link>
-    <pubDate>Mon, 28 Feb 2022 16:50:30 &#43;0800</pubDate>
-    <author>作者</author>
-    <guid>/apache-commons-collections2/</guid>
-    <description><![CDATA[前言 继续学习cc链，重点在于新知识的学习和运用 环境搭建 创建maven项目，pox.xml修改为如下内容 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19]]></description>
 </item></channel>
 </rss>
