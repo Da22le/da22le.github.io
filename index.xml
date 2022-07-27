@@ -4,9 +4,16 @@
         <link>/</link>
         <description>好好学习 天天向上</description>
         <generator>Hugo -- gohugo.io</generator><language>zh-CN</language><managingEditor>da22lecui@gmail.com (Da22le)</managingEditor>
-            <webMaster>da22lecui@gmail.com (Da22le)</webMaster><copyright>This work is licensed under a Creative Commons Attribution-NonCommercial 4.0 International License.</copyright><lastBuildDate>Wed, 13 Jul 2022 17:17:55 &#43;0800</lastBuildDate>
+            <webMaster>da22lecui@gmail.com (Da22le)</webMaster><copyright>This work is licensed under a Creative Commons Attribution-NonCommercial 4.0 International License.</copyright><lastBuildDate>Fri, 22 Jul 2022 17:50:35 &#43;0800</lastBuildDate>
             <atom:link href="/index.xml" rel="self" type="application/rss+xml" />
         <item>
+    <title>CVE-2022-35741 Apache CloudStack SAML XXE注入</title>
+    <link>/cve-2022-35741-apache-cloudstack-saml-xxe%E6%B3%A8%E5%85%A5/</link>
+    <pubDate>Fri, 22 Jul 2022 17:50:35 &#43;0800</pubDate>
+    <author>作者</author>
+    <guid>/cve-2022-35741-apache-cloudstack-saml-xxe%E6%B3%A8%E5%85%A5/</guid>
+    <description><![CDATA[前言 最近爆了好多洞，看到有个XXE注入，正好前段时间刚分析完ZOHO那个XXE正好分析一波 环境搭建 跟着官网安装，直接放弃，最后找到了dock]]></description>
+</item><item>
     <title>CVE-2022-28219 ZOHO ManageEngine ADAudit Plus XXE注入</title>
     <link>/cve-2022-28219-zoho-manageengine-adaudit-plus-xxe%E6%B3%A8%E5%85%A5/</link>
     <pubDate>Wed, 13 Jul 2022 17:17:55 &#43;0800</pubDate>
@@ -69,12 +76,5 @@
     <author>作者</author>
     <guid>/cve-2022-22963-spring-cloud-function-spel/</guid>
     <description><![CDATA[前言 刚曝出来的Spel表达式注入漏洞，这里简单分析一下 漏洞版本 1 3.0.0.RELEASE &lt;= Spring Cloud Function &lt;= 3.2.2 环境搭建 地址：https://github.com/sprin]]></description>
-</item><item>
-    <title>CVE-2022-22947 Spring Cloud Gateway SPEL RCE 简单分析</title>
-    <link>/cve-2022-22947-spring-cloud-gateway-spel-rce/</link>
-    <pubDate>Tue, 08 Mar 2022 16:51:00 &#43;0800</pubDate>
-    <author>作者</author>
-    <guid>/cve-2022-22947-spring-cloud-gateway-spel-rce/</guid>
-    <description><![CDATA[前言 前段时间刚爆出来的洞，很多师傅都详细分析了各自的思路和想法，不过总要自己亲手去调试分析才能更好的进步，因此有了这篇文章 漏洞版本 1 2 3 4 Spring]]></description>
 </item></channel>
 </rss>
