@@ -4,9 +4,16 @@
         <link>/</link>
         <description>好好学习 天天向上</description>
         <generator>Hugo -- gohugo.io</generator><language>zh-CN</language><managingEditor>da22lecui@gmail.com (Da22le)</managingEditor>
-            <webMaster>da22lecui@gmail.com (Da22le)</webMaster><copyright>This work is licensed under a Creative Commons Attribution-NonCommercial 4.0 International License.</copyright><lastBuildDate>Fri, 22 Jul 2022 17:50:35 &#43;0800</lastBuildDate>
+            <webMaster>da22lecui@gmail.com (Da22le)</webMaster><copyright>This work is licensed under a Creative Commons Attribution-NonCommercial 4.0 International License.</copyright><lastBuildDate>Sat, 13 Aug 2022 14:15:16 &#43;0800</lastBuildDate>
             <atom:link href="/index.xml" rel="self" type="application/rss+xml" />
         <item>
+    <title>JDBC Connection URL RCE</title>
+    <link>/jdbc-connection-url-rce/</link>
+    <pubDate>Sat, 13 Aug 2022 14:15:16 &#43;0800</pubDate>
+    <author>作者</author>
+    <guid>/jdbc-connection-url-rce/</guid>
+    <description><![CDATA[前言 这几天注意到了有一个JDBC RCE的点，麻利的学习了一下，以下是个人的一些总结，算是为了以后方便自己看，先主要学习了Mysql和Post]]></description>
+</item><item>
     <title>CVE-2022-35741 Apache CloudStack SAML XXE注入</title>
     <link>/cve-2022-35741-apache-cloudstack-saml-xxe%E6%B3%A8%E5%85%A5/</link>
     <pubDate>Fri, 22 Jul 2022 17:50:35 &#43;0800</pubDate>
@@ -69,12 +76,5 @@
     <author>作者</author>
     <guid>/%E4%BA%91%E5%87%BD%E6%95%B0%E6%90%AD%E5%BB%BA%E4%BB%A3%E7%90%86%E6%B1%A0/</guid>
     <description><![CDATA[云函数的理解 云函数（Serverless Cloud Function，SCF）是云计算厂商为企业和开发者们提供的无服务器执行环境，可在无需购买和管理服]]></description>
-</item><item>
-    <title>CVE-2022-22963 Spring Cloud Function SpEL RCE 简单分析</title>
-    <link>/cve-2022-22963-spring-cloud-function-spel/</link>
-    <pubDate>Mon, 28 Mar 2022 11:33:57 &#43;0800</pubDate>
-    <author>作者</author>
-    <guid>/cve-2022-22963-spring-cloud-function-spel/</guid>
-    <description><![CDATA[前言 刚曝出来的Spel表达式注入漏洞，这里简单分析一下 漏洞版本 1 3.0.0.RELEASE &lt;= Spring Cloud Function &lt;= 3.2.2 环境搭建 地址：https://github.com/sprin]]></description>
 </item></channel>
 </rss>

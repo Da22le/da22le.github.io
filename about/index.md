@@ -3,4 +3,4 @@
 ## 关于自己
 
 
-* :(far fa-user fa-fw): **dddd**
+* :(far fa-user fa-fw): **热衷于漏洞分析和代码审计**

