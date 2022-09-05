@@ -4,7 +4,14 @@
         <link>/posts/</link>
         <description>所有文章 | Da22le的博客</description>
         <generator>Hugo -- gohugo.io</generator><language>zh-CN</language><managingEditor>da22lecui@gmail.com (Da22le)</managingEditor>
-            <webMaster>da22lecui@gmail.com (Da22le)</webMaster><copyright>This work is licensed under a Creative Commons Attribution-NonCommercial 4.0 International License.</copyright><lastBuildDate>Sat, 13 Aug 2022 14:15:16 &#43;0800</lastBuildDate><atom:link href="/posts/" rel="self" type="application/rss+xml" /><item>
+            <webMaster>da22lecui@gmail.com (Da22le)</webMaster><copyright>This work is licensed under a Creative Commons Attribution-NonCommercial 4.0 International License.</copyright><lastBuildDate>Fri, 02 Sep 2022 17:02:39 &#43;0800</lastBuildDate><atom:link href="/posts/" rel="self" type="application/rss+xml" /><item>
+    <title>CVE-2022-38772 ZOHO ManageEngine OpManager RCE</title>
+    <link>/cve-2022-38772-zoho-manageengine-opmanager-rce/</link>
+    <pubDate>Fri, 02 Sep 2022 17:02:39 &#43;0800</pubDate>
+    <author>作者</author>
+    <guid>/cve-2022-38772-zoho-manageengine-opmanager-rce/</guid>
+    <description><![CDATA[前言 最近在审计opmanager，正好爆了一个rce来学习一下 漏洞分析 环境直接官网下载，一路下一步即可 漏洞描述是：允许经过身份验证的用户进行]]></description>
+</item><item>
     <title>JDBC Connection URL RCE</title>
     <link>/jdbc-connection-url-rce/</link>
     <pubDate>Sat, 13 Aug 2022 14:15:16 &#43;0800</pubDate>
@@ -67,12 +74,5 @@
     <author>作者</author>
     <guid>/cve-2022-22954-vmware-workspace-one-access-ssti-rce/</guid>
     <description><![CDATA[简介 Workspace ONE Access 提供统一应用门户,通过门户可安全访问企业的所有应用，可用于单点登录。CVE-2022-22954 中，攻击者可构造恶意请求造成模板注]]></description>
-</item><item>
-    <title>云函数搭建代理池</title>
-    <link>/%E4%BA%91%E5%87%BD%E6%95%B0%E6%90%AD%E5%BB%BA%E4%BB%A3%E7%90%86%E6%B1%A0/</link>
-    <pubDate>Wed, 06 Apr 2022 11:27:19 &#43;0800</pubDate>
-    <author>作者</author>
-    <guid>/%E4%BA%91%E5%87%BD%E6%95%B0%E6%90%AD%E5%BB%BA%E4%BB%A3%E7%90%86%E6%B1%A0/</guid>
-    <description><![CDATA[云函数的理解 云函数（Serverless Cloud Function，SCF）是云计算厂商为企业和开发者们提供的无服务器执行环境，可在无需购买和管理服]]></description>
 </item></channel>
 </rss>
