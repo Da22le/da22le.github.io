@@ -2,9 +2,9 @@
     xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
     xmlns:xhtml="http://www.w3.org/1999/xhtml"
     ><url>
-            <loc>/cve-2022-37024-zoho-manageengine-opmanager-rce/</loc><lastmod>2022-09-02T17:02:39&#43;08:00</lastmod><changefreq>weekly</changefreq><priority>1</priority></url><url>
             <loc>/</loc><lastmod>2022-09-02T17:02:39&#43;08:00</lastmod><changefreq>weekly</changefreq><priority>1</priority></url><url>
             <loc>/posts/</loc><lastmod>2022-09-02T17:02:39&#43;08:00</lastmod><changefreq>weekly</changefreq><priority>1</priority></url><url>
+            <loc>/zoho-manageengine-opmanager-%E4%B8%A4%E4%B8%AArce/</loc><lastmod>2022-09-02T17:02:39&#43;08:00</lastmod><changefreq>weekly</changefreq><priority>1</priority></url><url>
             <loc>/jdbc-connection-url-rce/</loc><lastmod>2022-08-13T14:15:16&#43;08:00</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url><url>
             <loc>/cve-2022-35741-apache-cloudstack-saml-xxe%E6%B3%A8%E5%85%A5/</loc><lastmod>2022-07-22T17:50:35&#43;08:00</lastmod><changefreq>weekly</changefreq><priority>0.5</priority></url><url>
             <loc>/cve-2022-28219-zoho-manageengine-adaudit-plus-xxe%E6%B3%A8%E5%85%A5/</loc><lastmod>2022-07-13T17:17:55&#43;08:00</lastmod><changefreq>weekly</changefreq><priority>0.5</priority></url><url>

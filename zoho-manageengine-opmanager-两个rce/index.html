@@ -5,32 +5,32 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="robots" content="noodp" />
         <meta http-equiv="X-UA-Compatible" content="IE=edge, chrome=1">
-        <title>CVE-2022-37024 ZOHO ManageEngine OpManager RCE - Da22le的博客</title><meta name="Description" content="好好学习 天天向上"><meta property="og:title" content="CVE-2022-37024 ZOHO ManageEngine OpManager RCE" />
-<meta property="og:description" content="前言 最近在审计opmanager，正好爆了一个rce来学习一下 漏洞分析 环境直接官网下载，一路下一步即可 漏洞描述是：允许经过身份验证的用户进行" />
+        <title>ZOHO ManageEngine OpManager 两个RCE - Da22le的博客</title><meta name="Description" content="好好学习 天天向上"><meta property="og:title" content="ZOHO ManageEngine OpManager 两个RCE" />
+<meta property="og:description" content="前言 最近在审计opmanager，正好爆了rce来学习一下 第一个RCE（CVE-2022-37024） 环境直接官网下载，一路下一步即可 漏洞描" />
 <meta property="og:type" content="article" />
-<meta property="og:url" content="/cve-2022-37024-zoho-manageengine-opmanager-rce/" /><meta property="og:image" content="/logo.png"/><meta property="article:section" content="posts" />
+<meta property="og:url" content="/zoho-manageengine-opmanager-%E4%B8%A4%E4%B8%AArce/" /><meta property="og:image" content="/logo.png"/><meta property="article:section" content="posts" />
 <meta property="article:published_time" content="2022-09-02T17:02:39+08:00" />
 <meta property="article:modified_time" content="2022-09-02T17:02:39+08:00" />
 
 <meta name="twitter:card" content="summary_large_image"/>
 <meta name="twitter:image" content="/logo.png"/>
 
-<meta name="twitter:title" content="CVE-2022-37024 ZOHO ManageEngine OpManager RCE"/>
-<meta name="twitter:description" content="前言 最近在审计opmanager，正好爆了一个rce来学习一下 漏洞分析 环境直接官网下载，一路下一步即可 漏洞描述是：允许经过身份验证的用户进行"/>
+<meta name="twitter:title" content="ZOHO ManageEngine OpManager 两个RCE"/>
+<meta name="twitter:description" content="前言 最近在审计opmanager，正好爆了rce来学习一下 第一个RCE（CVE-2022-37024） 环境直接官网下载，一路下一步即可 漏洞描"/>
 <meta name="application-name" content="LoveIt">
 <meta name="apple-mobile-web-app-title" content="LoveIt"><meta name="theme-color" content="#ffffff"><meta name="msapplication-TileColor" content="#da532c"><link rel="shortcut icon" type="image/x-icon" href="/favicon.ico" />
         <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
-        <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png"><link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png"><link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5"><link rel="manifest" href="/site.webmanifest"><link rel="canonical" href="/cve-2022-37024-zoho-manageengine-opmanager-rce/" /><link rel="prev" href="/jdbc-connection-url-rce/" /><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/normalize.css@8.0.1/normalize.min.css"><link rel="stylesheet" href="/css/style.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.13.0/css/all.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@3.7.2/animate.min.css"><script type="application/ld+json">
+        <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png"><link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png"><link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5"><link rel="manifest" href="/site.webmanifest"><link rel="canonical" href="/zoho-manageengine-opmanager-%E4%B8%A4%E4%B8%AArce/" /><link rel="prev" href="/jdbc-connection-url-rce/" /><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/normalize.css@8.0.1/normalize.min.css"><link rel="stylesheet" href="/css/style.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.13.0/css/all.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@3.7.2/animate.min.css"><script type="application/ld+json">
     {
         "@context": "http://schema.org",
         "@type": "BlogPosting",
-        "headline": "CVE-2022-37024 ZOHO ManageEngine OpManager RCE",
+        "headline": "ZOHO ManageEngine OpManager 两个RCE",
         "inLanguage": "zh-CN",
         "mainEntityOfPage": {
             "@type": "WebPage",
-            "@id": "\/cve-2022-37024-zoho-manageengine-opmanager-rce\/"
-        },"image": ["\/images\/Apple-Devices-Preview.png"],"genre": "posts","wordcount":  1918 ,
-        "url": "\/cve-2022-37024-zoho-manageengine-opmanager-rce\/","datePublished": "2022-09-02T17:02:39+08:00","dateModified": "2022-09-02T17:02:39+08:00","license": "This work is licensed under a Creative Commons Attribution-NonCommercial 4.0 International License.","publisher": {
+            "@id": "\/zoho-manageengine-opmanager-%E4%B8%A4%E4%B8%AArce\/"
+        },"image": ["\/images\/Apple-Devices-Preview.png"],"genre": "posts","wordcount":  2763 ,
+        "url": "\/zoho-manageengine-opmanager-%E4%B8%A4%E4%B8%AArce\/","datePublished": "2022-09-02T17:02:39+08:00","dateModified": "2022-09-02T17:02:39+08:00","license": "This work is licensed under a Creative Commons Attribution-NonCommercial 4.0 International License.","publisher": {
             "@type": "Organization",
             "name": "Da22le","logo": "\/images\/avatar.png"},"author": {
                 "@type": "Person",
@@ -104,10 +104,10 @@
                 <div class="container"><div class="toc" id="toc-auto">
             <h2 class="toc-title">目录</h2>
             <div class="toc-content always-active" id="toc-content-auto"></div>
-        </div><article class="page single"><h1 class="single-title animated flipInX">CVE-2022-37024 ZOHO ManageEngine OpManager RCE</h1><div class="post-meta">
+        </div><article class="page single"><h1 class="single-title animated flipInX">ZOHO ManageEngine OpManager 两个RCE</h1><div class="post-meta">
             <div class="post-meta-line"><span class="post-author"><a href="/" title="Author" rel=" author" class="author"><i class="fas fa-user-circle fa-fw"></i>Da22le</a></span></div>
-            <div class="post-meta-line"><i class="far fa-calendar-alt fa-fw"></i>&nbsp;<time datetime="2022-09-02">2022-09-02</time>&nbsp;<i class="fas fa-pencil-alt fa-fw"></i>&nbsp;约 1918 字&nbsp;
-                <i class="far fa-clock fa-fw"></i>&nbsp;预计阅读 4 分钟&nbsp;<span id="/cve-2022-37024-zoho-manageengine-opmanager-rce/" class="leancloud_visitors" data-flag-title="CVE-2022-37024 ZOHO ManageEngine OpManager RCE">
+            <div class="post-meta-line"><i class="far fa-calendar-alt fa-fw"></i>&nbsp;<time datetime="2022-09-02">2022-09-02</time>&nbsp;<i class="fas fa-pencil-alt fa-fw"></i>&nbsp;约 2763 字&nbsp;
+                <i class="far fa-clock fa-fw"></i>&nbsp;预计阅读 6 分钟&nbsp;<span id="/zoho-manageengine-opmanager-%E4%B8%A4%E4%B8%AArce/" class="leancloud_visitors" data-flag-title="ZOHO ManageEngine OpManager 两个RCE">
                         <i class="far fa-eye fa-fw"></i>&nbsp;<span class=leancloud-visitors-count></span>&nbsp;次阅读
                     </span>&nbsp;</div>
         </div><div class="details toc" id="toc-static"  kept="">
@@ -118,14 +118,15 @@
                 <div class="details-content toc-content" id="toc-content-static"><nav id="TableOfContents">
   <ul>
     <li><a href="#前言">前言</a></li>
-    <li><a href="#漏洞分析">漏洞分析</a></li>
+    <li><a href="#第一个rcecve-2022-37024">第一个RCE（CVE-2022-37024）</a></li>
+    <li><a href="#另一个rcecve-2022-38772">另一个RCE（CVE-2022-38772）</a></li>
     <li><a href="#小结">小结</a></li>
     <li><a href="#参考连接">参考连接</a></li>
   </ul>
 </nav></div>
             </div><div class="content" id="content"><h1 id="前言">前言</h1>
-<p>最近在审计opmanager，正好爆了一个rce来学习一下</p>
-<h1 id="漏洞分析">漏洞分析</h1>
+<p>最近在审计opmanager，正好爆了rce来学习一下</p>
+<h1 id="第一个rcecve-2022-37024">第一个RCE（CVE-2022-37024）</h1>
 <p>环境直接官网下载，一路下一步即可</p>
 <p>漏洞描述是：允许经过身份验证的用户进行数据库更改，从而导致NMAP功能中的远程代码执行。也就是说可以分为两点一是：如何修改数据库的内容。二是：找执行nmap操作时从数据库中提取并拼接的参数</p>
 <p>报着这样的想法先来看一波补丁，这里用的是125657和125658，在<code>com.adventnet.netutils.fw.nmap.utils.NmapUtil#getNmapInitialOption</code>中删除了一个<code>ADDITIONAL_COMMAND</code>字段，该字段进入到<code>IPAMUseBean.getIPAMPropertyString(keys)</code>中从数据库<code>IPAMProperty</code>的表中取出value值，然后返回拼接到nmap中返回一串字符串，而且从该函数的名字就可以看出初始化nmap参数，到这里猜测八九不离十了</p>
@@ -257,11 +258,92 @@
         data-sizes="auto"
         alt="https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/27baa3b2-0e1d-e37a-fdd5-cc1f62cc8ebd.png"
         title="15.png" /></p>
+<h1 id="另一个rcecve-2022-38772">另一个RCE（CVE-2022-38772）</h1>
+<p>当我看见另一个rce漏洞描述的时候，人其实是懵的，所以<code>ADDITIONAL_COMMAND</code>也是可以和<code>DNS_SERVER</code>一样拼接到nmap操作里，触发命令注入的，那么当时没找到肯定就是漏了一个重要的关键点，因此我就又一个一个将补丁看了一下，果然发现了两个点：一个是<code>com.adventnet.netutils.api.ipam.IPAMAPIUtil#configureNmapScanOptions</code>里，另外一个是在<code>com.adventnet.ncm.api.impl.SettingsRESTApiModule#executeDBQueryConsole</code>中</p>
+<p>先来看第一个，删了<code>ADDITIONAL_COMMAND</code>，并且删除了从request提取<code>ADDITIONAL_COMMAND</code>的操作，那么这个应该是可以从api直接访问并且构造恶意包内容的</p>
+<p><img
+        class="lazyload"
+        src="/svg/loading.min.svg"
+        data-src="https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/d2527964-96ca-cbd9-fabb-5c20245a12a4.png"
+        data-srcset="https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/d2527964-96ca-cbd9-fabb-5c20245a12a4.png, https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/d2527964-96ca-cbd9-fabb-5c20245a12a4.png 1.5x, https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/d2527964-96ca-cbd9-fabb-5c20245a12a4.png 2x"
+        data-sizes="auto"
+        alt="https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/d2527964-96ca-cbd9-fabb-5c20245a12a4.png"
+        title="16.png" /></p>
+<p><img
+        class="lazyload"
+        src="/svg/loading.min.svg"
+        data-src="https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/0283773c-f877-3843-3d3b-db9c69fcb2ee.png"
+        data-srcset="https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/0283773c-f877-3843-3d3b-db9c69fcb2ee.png, https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/0283773c-f877-3843-3d3b-db9c69fcb2ee.png 1.5x, https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/0283773c-f877-3843-3d3b-db9c69fcb2ee.png 2x"
+        data-sizes="auto"
+        alt="https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/0283773c-f877-3843-3d3b-db9c69fcb2ee.png"
+        title="17.png" /></p>
+<p>接着全局搜索找到了相应路由和参数，但是配置文件里没有配置<code>ADDITIONAL_COMMAND</code>参数，构造数据包测试一下果然报错，找了一下没有办法绕过</p>
+<p><img
+        class="lazyload"
+        src="/svg/loading.min.svg"
+        data-src="https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/08b51ac4-6636-80fa-3757-0ec8307d33f7.png"
+        data-srcset="https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/08b51ac4-6636-80fa-3757-0ec8307d33f7.png, https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/08b51ac4-6636-80fa-3757-0ec8307d33f7.png 1.5x, https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/08b51ac4-6636-80fa-3757-0ec8307d33f7.png 2x"
+        data-sizes="auto"
+        alt="https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/08b51ac4-6636-80fa-3757-0ec8307d33f7.png"
+        title="18.png" /></p>
+<p><img
+        class="lazyload"
+        src="/svg/loading.min.svg"
+        data-src="https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/860e3ebf-fc75-9f37-a04c-2a7d29ad623a.png"
+        data-srcset="https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/860e3ebf-fc75-9f37-a04c-2a7d29ad623a.png, https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/860e3ebf-fc75-9f37-a04c-2a7d29ad623a.png 1.5x, https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/860e3ebf-fc75-9f37-a04c-2a7d29ad623a.png 2x"
+        data-sizes="auto"
+        alt="https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/860e3ebf-fc75-9f37-a04c-2a7d29ad623a.png"
+        title="19.png" /></p>
+<p>然后就继续翻补丁，找到了一个执行sql操作的地方，从request中提出<code>QUERY_STRING</code>的值，然后传入到<code>RunQuery</code>中执行sql操作，这里做了校验只是从<code>QUERY_STRING</code>中取出前6个字符判断不能为：insert、delete、drop，其中并没有限制update那么可以直接修改<code>DNS_SERVER</code>的值从而绕过第一次正则匹配，但是不能绕过空白字符替换，另外也可以通过<code>;</code>绕过其限制，直接插入<code>ADDITIONAL_COMMAND</code>的值</p>
+<p><img
+        class="lazyload"
+        src="/svg/loading.min.svg"
+        data-src="https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/7970676b-8af2-963c-2100-0924a2b72201.png"
+        data-srcset="https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/7970676b-8af2-963c-2100-0924a2b72201.png, https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/7970676b-8af2-963c-2100-0924a2b72201.png 1.5x, https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/7970676b-8af2-963c-2100-0924a2b72201.png 2x"
+        data-sizes="auto"
+        alt="https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/7970676b-8af2-963c-2100-0924a2b72201.png"
+        title="20.png" /></p>
+<p>全局搜索找到调用<code>executeDBQueryConsole</code>的路由，而且<code>QUERY_STRING</code>没有校验，那么直接构造数据包向<code>IPAMProperty</code>表中插入数据</p>
+<p><img
+        class="lazyload"
+        src="/svg/loading.min.svg"
+        data-src="https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/7d9e0c80-aa5c-cee8-0e3b-a21a0d4db936.png"
+        data-srcset="https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/7d9e0c80-aa5c-cee8-0e3b-a21a0d4db936.png, https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/7d9e0c80-aa5c-cee8-0e3b-a21a0d4db936.png 1.5x, https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/7d9e0c80-aa5c-cee8-0e3b-a21a0d4db936.png 2x"
+        data-sizes="auto"
+        alt="https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/7d9e0c80-aa5c-cee8-0e3b-a21a0d4db936.png"
+        title="21.png" /></p>
+<p>这里直接插入时提示最大长度为100，那么就先随便插入在通过update修改值即可</p>
+<p><img
+        class="lazyload"
+        src="/svg/loading.min.svg"
+        data-src="https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/665d6406-00c3-bab9-c5ff-580f3403d0db.png"
+        data-srcset="https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/665d6406-00c3-bab9-c5ff-580f3403d0db.png, https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/665d6406-00c3-bab9-c5ff-580f3403d0db.png 1.5x, https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/665d6406-00c3-bab9-c5ff-580f3403d0db.png 2x"
+        data-sizes="auto"
+        alt="https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/665d6406-00c3-bab9-c5ff-580f3403d0db.png"
+        title="22.png" /></p>
+<p><img
+        class="lazyload"
+        src="/svg/loading.min.svg"
+        data-src="https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/660a90a5-5f1d-d624-9220-ebbd28d69dbb.png"
+        data-srcset="https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/660a90a5-5f1d-d624-9220-ebbd28d69dbb.png, https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/660a90a5-5f1d-d624-9220-ebbd28d69dbb.png 1.5x, https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/660a90a5-5f1d-d624-9220-ebbd28d69dbb.png 2x"
+        data-sizes="auto"
+        alt="https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/660a90a5-5f1d-d624-9220-ebbd28d69dbb.png"
+        title="23.png" /></p>
+<p>最后来看一下执行nmap时，拼接的参数</p>
+<p><img
+        class="lazyload"
+        src="/svg/loading.min.svg"
+        data-src="https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/caa5162b-ca2d-bd47-f588-5b0148146e01.png"
+        data-srcset="https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/caa5162b-ca2d-bd47-f588-5b0148146e01.png, https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/caa5162b-ca2d-bd47-f588-5b0148146e01.png 1.5x, https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/caa5162b-ca2d-bd47-f588-5b0148146e01.png 2x"
+        data-sizes="auto"
+        alt="https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/caa5162b-ca2d-bd47-f588-5b0148146e01.png"
+        title="24.png" /></p>
 <h1 id="小结">小结</h1>
-<p>opmanager前段时间还爆了一个获取apikey的洞，<a href="https://y4er.com/posts/cve-2022-36923-manageengine-opmanager-getuserapikey-authentication-bypass/" target="_blank" rel="noopener noreffer">文章在这</a>，但是这个apikey并不能调用这两个路由，因此少了一环没有能够未授权rce，这次审漏洞收获不少，多了许多的思路能够运用到以后的挖洞中，也有不足，经验不够还要多审计提升经验</p>
+<p>opmanager前段时间还爆了一个获取apikey的洞，<a href="https://y4er.com/posts/cve-2022-36923-manageengine-opmanager-getuserapikey-authentication-bypass/" target="_blank" rel="noopener noreffer">文章在这</a>，但是这个apikey并不能调用这几个路由，因此少了一环没有能够未授权rce，这次审漏洞收获不少，多了许多的思路能够运用到以后的挖洞中，也有不足，经验不够还要多审计提升经验</p>
 <h1 id="参考连接">参考连接</h1>
 <ol>
 <li><a href="https://www.manageengine.com/itom/advisory/cve-2022-37024.html" target="_blank" rel="noopener noreffer">https://www.manageengine.com/itom/advisory/cve-2022-37024.html</a></li>
+<li><a href="https://www.manageengine.com/itom/advisory/cve-2022-38772.html" target="_blank" rel="noopener noreffer">https://www.manageengine.com/itom/advisory/cve-2022-38772.html</a></li>
 </ol>
 </div><div class="post-footer" id="post-footer">
     <div class="post-info">
@@ -274,7 +356,7 @@
         <div class="post-info-line">
             <div class="post-info-md"></div>
             <div class="post-info-share">
-                <span><a href="javascript:void(0);" title="分享到 Twitter" data-sharer="twitter" data-url="/cve-2022-37024-zoho-manageengine-opmanager-rce/" data-title="CVE-2022-37024 ZOHO ManageEngine OpManager RCE" data-via="Da22lec"><i class="fab fa-twitter fa-fw"></i></a><a href="javascript:void(0);" title="分享到 Facebook" data-sharer="facebook" data-url="/cve-2022-37024-zoho-manageengine-opmanager-rce/"><i class="fab fa-facebook-square fa-fw"></i></a><a href="javascript:void(0);" title="分享到 Hacker News" data-sharer="hackernews" data-url="/cve-2022-37024-zoho-manageengine-opmanager-rce/" data-title="CVE-2022-37024 ZOHO ManageEngine OpManager RCE"><i class="fab fa-hacker-news fa-fw"></i></a><a href="javascript:void(0);" title="分享到 Line" data-sharer="line" data-url="/cve-2022-37024-zoho-manageengine-opmanager-rce/" data-title="CVE-2022-37024 ZOHO ManageEngine OpManager RCE"><i data-svg-src="https://cdn.jsdelivr.net/npm/simple-icons@2.14.0/icons/line.svg"></i></a><a href="javascript:void(0);" title="分享到 微博" data-sharer="weibo" data-url="/cve-2022-37024-zoho-manageengine-opmanager-rce/" data-title="CVE-2022-37024 ZOHO ManageEngine OpManager RCE"><i class="fab fa-weibo fa-fw"></i></a></span>
+                <span><a href="javascript:void(0);" title="分享到 Twitter" data-sharer="twitter" data-url="/zoho-manageengine-opmanager-%E4%B8%A4%E4%B8%AArce/" data-title="ZOHO ManageEngine OpManager 两个RCE" data-via="Da22lec"><i class="fab fa-twitter fa-fw"></i></a><a href="javascript:void(0);" title="分享到 Facebook" data-sharer="facebook" data-url="/zoho-manageengine-opmanager-%E4%B8%A4%E4%B8%AArce/"><i class="fab fa-facebook-square fa-fw"></i></a><a href="javascript:void(0);" title="分享到 Hacker News" data-sharer="hackernews" data-url="/zoho-manageengine-opmanager-%E4%B8%A4%E4%B8%AArce/" data-title="ZOHO ManageEngine OpManager 两个RCE"><i class="fab fa-hacker-news fa-fw"></i></a><a href="javascript:void(0);" title="分享到 Line" data-sharer="line" data-url="/zoho-manageengine-opmanager-%E4%B8%A4%E4%B8%AArce/" data-title="ZOHO ManageEngine OpManager 两个RCE"><i data-svg-src="https://cdn.jsdelivr.net/npm/simple-icons@2.14.0/icons/line.svg"></i></a><a href="javascript:void(0);" title="分享到 微博" data-sharer="weibo" data-url="/zoho-manageengine-opmanager-%E4%B8%A4%E4%B8%AArce/" data-title="ZOHO ManageEngine OpManager 两个RCE"><i class="fab fa-weibo fa-fw"></i></a></span>
             </div>
         </div>
     </div>

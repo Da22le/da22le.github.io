@@ -5,12 +5,12 @@
         <description>所有文章 | Da22le的博客</description>
         <generator>Hugo -- gohugo.io</generator><language>zh-CN</language><managingEditor>da22lecui@gmail.com (Da22le)</managingEditor>
             <webMaster>da22lecui@gmail.com (Da22le)</webMaster><copyright>This work is licensed under a Creative Commons Attribution-NonCommercial 4.0 International License.</copyright><lastBuildDate>Fri, 02 Sep 2022 17:02:39 &#43;0800</lastBuildDate><atom:link href="/posts/" rel="self" type="application/rss+xml" /><item>
-    <title>CVE-2022-37024 ZOHO ManageEngine OpManager RCE</title>
-    <link>/cve-2022-37024-zoho-manageengine-opmanager-rce/</link>
+    <title>ZOHO ManageEngine OpManager 两个RCE</title>
+    <link>/zoho-manageengine-opmanager-%E4%B8%A4%E4%B8%AArce/</link>
     <pubDate>Fri, 02 Sep 2022 17:02:39 &#43;0800</pubDate>
     <author>作者</author>
-    <guid>/cve-2022-37024-zoho-manageengine-opmanager-rce/</guid>
-    <description><![CDATA[前言 最近在审计opmanager，正好爆了一个rce来学习一下 漏洞分析 环境直接官网下载，一路下一步即可 漏洞描述是：允许经过身份验证的用户进行]]></description>
+    <guid>/zoho-manageengine-opmanager-%E4%B8%A4%E4%B8%AArce/</guid>
+    <description><![CDATA[前言 最近在审计opmanager，正好爆了rce来学习一下 第一个RCE（CVE-2022-37024） 环境直接官网下载，一路下一步即可 漏洞描]]></description>
 </item><item>
     <title>JDBC Connection URL RCE</title>
     <link>/jdbc-connection-url-rce/</link>
