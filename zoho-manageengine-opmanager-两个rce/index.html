@@ -29,7 +29,7 @@
         "mainEntityOfPage": {
             "@type": "WebPage",
             "@id": "\/zoho-manageengine-opmanager-%E4%B8%A4%E4%B8%AArce\/"
-        },"image": ["\/images\/Apple-Devices-Preview.png"],"genre": "posts","wordcount":  2823 ,
+        },"image": ["\/images\/Apple-Devices-Preview.png"],"genre": "posts","wordcount":  2897 ,
         "url": "\/zoho-manageengine-opmanager-%E4%B8%A4%E4%B8%AArce\/","datePublished": "2022-09-02T17:02:39+08:00","dateModified": "2022-09-02T17:02:39+08:00","license": "This work is licensed under a Creative Commons Attribution-NonCommercial 4.0 International License.","publisher": {
             "@type": "Organization",
             "name": "Da22le","logo": "\/images\/avatar.png"},"author": {
@@ -106,7 +106,7 @@
             <div class="toc-content always-active" id="toc-content-auto"></div>
         </div><article class="page single"><h1 class="single-title animated flipInX">ZOHO ManageEngine OpManager 两个RCE</h1><div class="post-meta">
             <div class="post-meta-line"><span class="post-author"><a href="/" title="Author" rel=" author" class="author"><i class="fas fa-user-circle fa-fw"></i>Da22le</a></span></div>
-            <div class="post-meta-line"><i class="far fa-calendar-alt fa-fw"></i>&nbsp;<time datetime="2022-09-02">2022-09-02</time>&nbsp;<i class="fas fa-pencil-alt fa-fw"></i>&nbsp;约 2823 字&nbsp;
+            <div class="post-meta-line"><i class="far fa-calendar-alt fa-fw"></i>&nbsp;<time datetime="2022-09-02">2022-09-02</time>&nbsp;<i class="fas fa-pencil-alt fa-fw"></i>&nbsp;约 2897 字&nbsp;
                 <i class="far fa-clock fa-fw"></i>&nbsp;预计阅读 6 分钟&nbsp;<span id="/zoho-manageengine-opmanager-%E4%B8%A4%E4%B8%AArce/" class="leancloud_visitors" data-flag-title="ZOHO ManageEngine OpManager 两个RCE">
                         <i class="far fa-eye fa-fw"></i>&nbsp;<span class=leancloud-visitors-count></span>&nbsp;次阅读
                     </span>&nbsp;</div>
@@ -338,6 +338,7 @@
         data-sizes="auto"
         alt="https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/2513662/caa5162b-ca2d-bd47-f588-5b0148146e01.png"
         title="24.png" /></p>
+<p>还有另外一个路由<code>/api/json/ipam/addDHCPServer</code>也可以触发nmap操作，但是依然不能够结合apikey达到未授权rce的效果</p>
 <h1 id="小结">小结</h1>
 <p>opmanager前段时间还爆了一个获取apikey的洞，<a href="https://y4er.com/posts/cve-2022-36923-manageengine-opmanager-getuserapikey-authentication-bypass/" target="_blank" rel="noopener noreffer">文章在这</a>，但是这个apikey并不能调用这几个路由，因此少了一环没有能够未授权rce，但是<code>/api/json/ncmsettings/executeDBQuery</code>可以通过apikey调用可以执行sql操作，这次审漏洞收获不少，多了许多的思路能够运用到以后的挖洞中，也有不足，经验不够还要多审计提升经验</p>
 <h1 id="参考连接">参考连接</h1>
