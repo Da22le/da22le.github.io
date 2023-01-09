@@ -4,7 +4,14 @@
         <link>/posts/</link>
         <description>所有文章 | Da22le的博客</description>
         <generator>Hugo -- gohugo.io</generator><language>zh-CN</language><managingEditor>da22lecui@gmail.com (Da22le)</managingEditor>
-            <webMaster>da22lecui@gmail.com (Da22le)</webMaster><copyright>This work is licensed under a Creative Commons Attribution-NonCommercial 4.0 International License.</copyright><lastBuildDate>Tue, 11 Oct 2022 16:43:46 &#43;0800</lastBuildDate><atom:link href="/posts/" rel="self" type="application/rss+xml" /><item>
+            <webMaster>da22lecui@gmail.com (Da22le)</webMaster><copyright>This work is licensed under a Creative Commons Attribution-NonCommercial 4.0 International License.</copyright><lastBuildDate>Thu, 05 Jan 2023 14:24:01 &#43;0800</lastBuildDate><atom:link href="/posts/" rel="self" type="application/rss+xml" /><item>
+    <title>CVE-2022-43473 ZOHO ManageEngine OpManager XXE注入</title>
+    <link>/cve-2022-43473-zoho-manageengine-opmanager-xxe%E6%B3%A8%E5%85%A5/</link>
+    <pubDate>Thu, 05 Jan 2023 14:24:01 &#43;0800</pubDate>
+    <author>作者</author>
+    <guid>/cve-2022-43473-zoho-manageengine-opmanager-xxe%E6%B3%A8%E5%85%A5/</guid>
+    <description><![CDATA[前言 年前一直在忙没时间写文章，最近不忙了看到opmanager爆出一个XXE注入，人麻了，想起来上次审计opmanager时爆了rce，也不]]></description>
+</item><item>
     <title>CVE-2022-41852 Apache Commons JXPath RCE</title>
     <link>/cve-2022-41852-apache-commons-jxpath-rce/</link>
     <pubDate>Tue, 11 Oct 2022 16:43:46 &#43;0800</pubDate>
@@ -67,12 +74,5 @@
     <author>作者</author>
     <guid>/jdk7u21%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E5%88%86%E6%9E%90/</guid>
     <description><![CDATA[前言 继续学习反序列化，这个链子正好用到了前面fastjson反序列化的TemplatesImpl类，这里就不详细讲解该类的具体用法，有兴趣的]]></description>
-</item><item>
-    <title>Fastjson 反序列化分析</title>
-    <link>/fastjson-%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E5%88%86%E6%9E%90/</link>
-    <pubDate>Thu, 28 Apr 2022 17:27:49 &#43;0800</pubDate>
-    <author>作者</author>
-    <guid>/fastjson-%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E5%88%86%E6%9E%90/</guid>
-    <description><![CDATA[前言 继续学习Fastjson反序列化 Fastjson的使用 直接上代码 先引入fastjson1.2.24依赖 1 2 3 4 5 &lt;dependency&gt; &lt;groupId&gt;com.alibaba&lt;/groupId&gt; &lt;artifactId&gt;fastjson&lt;/artifactId&gt; &lt;version&gt;1.2.24&lt;/version&gt; &lt;/dependency&gt; 创建一个use]]></description>
 </item></channel>
 </rss>

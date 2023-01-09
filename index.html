@@ -102,6 +102,10 @@
         alt="https://www.gravatar.com/avatar/c4ca4238a0b923820dcc509a6f75849b?s=240&amp;d=mp"
         title="https://www.gravatar.com/avatar/c4ca4238a0b923820dcc509a6f75849b?s=240&amp;d=mp" /></a></div><h1 class="home-title">Da22le的博客</h1><div class="links"><a href="https://github.com/Da22le" title="GitHub" target="_blank" rel="noopener noreffer me"><i class="fab fa-github-alt fa-fw"></i></a><a href="https://twitter.com/Da22lec" title="Twitter" target="_blank" rel="noopener noreffer me"><i class="fab fa-twitter fa-fw"></i></a><a href="/index.xml" title="RSS" target="_blank" rel="noopener noreffer me"><i class="fas fa-rss fa-fw"></i></a></div></div>
 <article class="single summary" itemscope itemtype="http://schema.org/Article"><h1 class="single-title" itemprop="name headline">
+        <a href="/cve-2022-43473-zoho-manageengine-opmanager-xxe%E6%B3%A8%E5%85%A5/">CVE-2022-43473 ZOHO ManageEngine OpManager XXE注入</a>
+    </h1><div class="post-meta"><span class="post-author"><a href="/" title="Author" rel=" author" class="author"><i class="fas fa-user-circle fa-fw"></i>Da22le</a></span>&nbsp;<span class="post-publish">发布于 <time datetime="2023-01-05">2023-01-05</time></span></div><div class="content">前言 年前一直在忙没时间写文章，最近不忙了看到opmanager爆出一个XXE注入，人麻了，想起来上次审计opmanager时爆了rce，也不</div><div class="post-footer">
+        <a href="/cve-2022-43473-zoho-manageengine-opmanager-xxe%E6%B3%A8%E5%85%A5/">阅读全文</a></div>
+</article><article class="single summary" itemscope itemtype="http://schema.org/Article"><h1 class="single-title" itemprop="name headline">
         <a href="/cve-2022-41852-apache-commons-jxpath-rce/">CVE-2022-41852 Apache Commons JXPath RCE</a>
     </h1><div class="post-meta"><span class="post-author"><a href="/" title="Author" rel=" author" class="author"><i class="fas fa-user-circle fa-fw"></i>Da22le</a></span>&nbsp;<span class="post-publish">发布于 <time datetime="2022-10-11">2022-10-11</time></span></div><div class="content">前言 最近在推特上看到有详情爆出来，就来分析学习一下 环境 引入jxpath依赖即可 1 2 3 4 5 &lt;dependency&gt; &lt;groupId&gt;commons-jxpath&lt;/groupId&gt; &lt;artifactId&gt;commons-jxpath&lt;/artifactId&gt; &lt;version&gt;1.3&lt;/version&gt; &lt;/dependency&gt; 漏洞分析 先来弹个计算器，利用的是Class</div><div class="post-footer">
         <a href="/cve-2022-41852-apache-commons-jxpath-rce/">阅读全文</a></div>
@@ -121,10 +125,6 @@
         <a href="/cve-2022-28219-zoho-manageengine-adaudit-plus-xxe%E6%B3%A8%E5%85%A5/">CVE-2022-28219 ZOHO ManageEngine ADAudit Plus XXE注入</a>
     </h1><div class="post-meta"><span class="post-author"><a href="/" title="Author" rel=" author" class="author"><i class="fas fa-user-circle fa-fw"></i>Da22le</a></span>&nbsp;<span class="post-publish">发布于 <time datetime="2022-07-13">2022-07-13</time></span></div><div class="content">前言 最近才看到这个洞，正好无事分析一波 环境搭建 我这里使用的是Win10安装：https://archives2.manageengine.c</div><div class="post-footer">
         <a href="/cve-2022-28219-zoho-manageengine-adaudit-plus-xxe%E6%B3%A8%E5%85%A5/">阅读全文</a></div>
-</article><article class="single summary" itemscope itemtype="http://schema.org/Article"><h1 class="single-title" itemprop="name headline">
-        <a href="/cve-2022-22980-spring-data-mongodb-spel-rce/">CVE-2022-22980 Spring Data MongoDB SpEL表达式注入</a>
-    </h1><div class="post-meta"><span class="post-author"><a href="/" title="Author" rel=" author" class="author"><i class="fas fa-user-circle fa-fw"></i>Da22le</a></span>&nbsp;<span class="post-publish">发布于 <time datetime="2022-06-23">2022-06-23</time></span></div><div class="content">前言 昨天在推特上看到threedr3am师傅发的Spring Data MongoDB SpEL的环境，然后就自己去手动分析了一波，这里用的版本是Spring Data MongoDB 3.3.4</div><div class="post-footer">
-        <a href="/cve-2022-22980-spring-data-mongodb-spel-rce/">阅读全文</a></div>
 </article><ul class="pagination"><li class="page-item active">
                     <span class="page-link">
                         <a href="/">1</a>
@@ -138,12 +138,14 @@
                         <a href="/page/3/">3</a>
                     </span>
                 </li><li class="page-item ">
+                    <span class="page-link" aria-hidden="true">&hellip;</span>
+                </li><li class="page-item ">
                     <span class="page-link">
-                        <a href="/page/4/">4</a>
+                        <a href="/page/5/">5</a>
                     </span>
                 </li></ul></div></div>
             </main><footer class="footer">
-        <div class="footer-container"><div class="footer-line"><i class="far fa-copyright fa-fw"></i><span itemprop="copyrightYear">2022</span></div>
+        <div class="footer-container"><div class="footer-line"><i class="far fa-copyright fa-fw"></i><span itemprop="copyrightYear">2022 - 2023</span></div>
         </div>
     </footer></div>
 
